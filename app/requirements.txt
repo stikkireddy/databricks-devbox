@@ -1,0 +1,2 @@
+uv
+databricks-sdk==0.67.0

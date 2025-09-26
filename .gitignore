@@ -1,0 +1,22 @@
+.states
+*.db
+*.py[cod]
+assets/external/
+.web
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+.pids
+
+data/
+workspace/
+logs/
+
+.DS_Store

@@ -1,10 +1,10 @@
 # LHA Code Server Manager
 
-A Python-based web application for managing VS Code server instances with real-time monitoring and process control.
+A Python-based web application for managing Code server instances with real-time monitoring and process control.
 
 ## Features
 
-- **Server Management**: Create, start, stop, restart, and delete VS Code server instances
+- **Server Management**: Create, start, stop, restart, and delete Code server instances
 - **Real-time Monitoring**: Live health metrics including CPU usage, memory consumption, and uptime
 - **Process Control**: Full lifecycle management with process health checking
 - **Reactive UI**: Pure Python frontend using Reflex framework
@@ -15,7 +15,7 @@ A Python-based web application for managing VS Code server instances with real-t
 
 - **Backend**: FastAPI with WebSocket support for real-time communication
 - **Frontend**: Reflex (Pure Python reactive UI framework)
-- **Process Management**: Python subprocess + psutil for VS Code server lifecycle
+- **Process Management**: Python subprocess + psutil for Code server lifecycle
 - **Real-time Updates**: WebSockets for live status monitoring
 
 ## Quick Start
@@ -56,7 +56,7 @@ make help       # Show available commands
 
 ## Usage
 
-### Creating a VS Code Server
+### Creating a Code Server
 
 1. Click "New Server" in the UI
 2. Enter server name, port, and workspace path
