@@ -20,3 +20,5 @@ workspace/
 logs/
 
 .DS_Store
+lha-code-server-*
+lha-code-server
