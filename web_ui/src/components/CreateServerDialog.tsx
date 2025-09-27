@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Plus, X, Loader2, ChevronDown, Upload, Github, FolderOpen } from 'lucide-react';
+import { Plus, Loader2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -12,55 +12,27 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuCheckboxItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Progress } from '@/components/ui/progress';
 import { useCreateServer, useCreateServerWithWorkspace, useMultiStepServerCreation } from '@/hooks/useServers';
-import type { ServerConfig } from '@/types/api';
+import { useExtensionGroups } from '@/hooks/useConfig';
+
+interface CreateServerRequest {
+  name: string;
+  workspace_path: string;
+  extensions: string[];
+}
+import { WorkspaceTabs } from './WorkspaceTabs';
+import { ExtensionGroups } from './ExtensionGroups';
+import { ProgressIndicator } from './ProgressIndicator';
 
 interface CreateServerDialogProps {
   trigger?: React.ReactNode;
 }
 
-// Predefined extension groups
-const EXTENSION_GROUPS = {
-  python: {
-    name: 'Python',
-    extensions: ['ms-python.python', 'ms-pyright.pyright']
-  },
-  jupyter: {
-    name: 'Jupyter',
-    extensions: [
-      'ms-toolsai.jupyter',
-      'ms-toolsai.jupyter-renderers',
-      'ms-toolsai.jupyter-keymap',
-      'ms-toolsai.vscode-jupyter-cell-tags'
-    ]
-  },
-  databricks: {
-    name: 'Databricks',
-    extensions: [
-      'databricks.databricks',
-      'databricks.sqltools-databricks-driver'
-    ]
-  },
-  'api-explorer': {
-    name: 'API Explorer',
-    extensions: ['rangav.vscode-thunder-client']
-  }
-};
-
 const CreateServerDialog: React.FC<CreateServerDialogProps> = ({ trigger }) => {
   const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState<ServerConfig>({
+  const [formData, setFormData] = useState<CreateServerRequest>({
     name: '',
-    workspace_path: '', // This will be set by the backend
+    workspace_path: '',
     extensions: [],
   });
   const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set());
@@ -75,6 +47,9 @@ const CreateServerDialog: React.FC<CreateServerDialogProps> = ({ trigger }) => {
   const [progressCurrent, setProgressCurrent] = useState(0);
   const [progressTotal, setProgressTotal] = useState(0);
 
+  // Get extension groups from config
+  const { extensionGroups, isLoading: configLoading } = useExtensionGroups();
+
   const createServerMutation = useCreateServer();
   const createServerWithWorkspaceMutation = useCreateServerWithWorkspace();
   const multiStepCreation = useMultiStepServerCreation();
@@ -86,7 +61,6 @@ const CreateServerDialog: React.FC<CreateServerDialogProps> = ({ trigger }) => {
       return;
     }
 
-    // Validate based on workspace type
     if (workspaceType === 'github' && !githubUrl.trim()) {
       return;
     }
@@ -94,27 +68,22 @@ const CreateServerDialog: React.FC<CreateServerDialogProps> = ({ trigger }) => {
       return;
     }
 
-    // Collect all extensions from selected groups
     const allExtensions: string[] = [];
     selectedGroups.forEach(groupKey => {
-      const group = EXTENSION_GROUPS[groupKey as keyof typeof EXTENSION_GROUPS];
+      const group = extensionGroups[groupKey];
       if (group) {
         allExtensions.push(...group.extensions);
       }
     });
 
     try {
-      // Use the appropriate API method based on workspace type
       if (workspaceType === 'empty') {
-        // Use the original API for empty workspaces
-        const submitData: ServerConfig = {
+        const submitData: CreateServerRequest = {
           ...formData,
           extensions: allExtensions
         };
-
-        await createServerMutation.mutateAsync(submitData);
+        await createServerMutation.mutateAsync(submitData as any);
       } else {
-        // Use multi-step approach with progress tracking for workspace initialization
         await multiStepCreation.createServerMultiStep(
           formData.name,
           allExtensions,
@@ -131,7 +100,6 @@ const CreateServerDialog: React.FC<CreateServerDialogProps> = ({ trigger }) => {
       setOpen(false);
       resetForm();
     } catch (error) {
-      // Error handling is done in the hooks
       console.error('Server creation failed:', error);
     }
   };
@@ -139,7 +107,7 @@ const CreateServerDialog: React.FC<CreateServerDialogProps> = ({ trigger }) => {
   const resetForm = () => {
     setFormData({
       name: '',
-      workspace_path: '', // This will be set by the backend
+      workspace_path: '',
       extensions: [],
     });
     setSelectedGroups(new Set());
@@ -201,7 +169,6 @@ const CreateServerDialog: React.FC<CreateServerDialogProps> = ({ trigger }) => {
   };
 
   const getLoadingMessage = () => {
-    // For multi-step creation, show current progress step
     if (multiStepCreation.isPending && progressStep) {
       return progressStep;
     }
@@ -260,161 +227,34 @@ const CreateServerDialog: React.FC<CreateServerDialogProps> = ({ trigger }) => {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label>Workspace Initialization</Label>
-              <Tabs value={workspaceType} onValueChange={(value) => setWorkspaceType(value as 'empty' | 'upload' | 'github')}>
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="empty" className="flex items-center gap-2">
-                    <FolderOpen className="h-4 w-4" />
-                    Empty
-                  </TabsTrigger>
-                  <TabsTrigger value="upload" className="flex items-center gap-2">
-                    <Upload className="h-4 w-4" />
-                    Upload Zip
-                  </TabsTrigger>
-                  <TabsTrigger value="github" className="flex items-center gap-2">
-                    <Github className="h-4 w-4" />
-                    GitHub
-                  </TabsTrigger>
-                </TabsList>
+            <WorkspaceTabs
+              workspaceType={workspaceType}
+              setWorkspaceType={setWorkspaceType}
+              githubUrl={githubUrl}
+              setGithubUrl={setGithubUrl}
+              selectedFile={selectedFile}
+              fileInputRef={fileInputRef}
+              onFileSelect={handleFileSelect}
+              onFileDrop={handleFileDrop}
+              onDragOver={handleDragOver}
+            />
 
-                <TabsContent value="empty" className="space-y-2">
-                  <p className="text-sm text-muted-foreground">
-                    Start with an empty workspace
-                  </p>
-                </TabsContent>
+            <ExtensionGroups
+              configLoading={configLoading}
+              extensionGroups={extensionGroups}
+              selectedGroups={selectedGroups}
+              dropdownOpen={dropdownOpen}
+              setDropdownOpen={setDropdownOpen}
+              onGroupToggle={handleGroupToggle}
+              onRemoveGroup={handleRemoveGroup}
+            />
 
-                <TabsContent value="upload" className="space-y-2">
-                  <div
-                    className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center cursor-pointer hover:border-muted-foreground/50 transition-colors"
-                    onDrop={handleFileDrop}
-                    onDragOver={handleDragOver}
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                    {selectedFile ? (
-                      <div>
-                        <p className="font-medium">{selectedFile.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                        </p>
-                      </div>
-                    ) : (
-                      <div>
-                        <p className="font-medium">Drag & drop a ZIP file here</p>
-                        <p className="text-sm text-muted-foreground">or click to browse</p>
-                      </div>
-                    )}
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept=".zip"
-                      onChange={handleFileSelect}
-                      className="hidden"
-                    />
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="github" className="space-y-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="github-url">GitHub Repository URL</Label>
-                    <Input
-                      id="github-url"
-                      placeholder="https://github.com/user/repo.git"
-                      value={githubUrl}
-                      onChange={(e) => setGithubUrl(e.target.value)}
-                    />
-                    <p className="text-sm text-muted-foreground">
-                      Enter a public GitHub repository URL (HTTPS or SSH)
-                    </p>
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </div>
-
-
-            <div className="space-y-2">
-              <Label>Extension Groups</Label>
-              <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    type="button"
-                    className="w-full justify-between"
-                  >
-                    <span>
-                      {selectedGroups.size === 0
-                        ? 'Select extension groups'
-                        : `${selectedGroups.size} group${selectedGroups.size === 1 ? '' : 's'} selected`
-                      }
-                    </span>
-                    <ChevronDown className="h-4 w-4 opacity-50" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  className="w-56"
-                  align="start"
-                  onCloseAutoFocus={(e) => e.preventDefault()}
-                >
-                  {Object.entries(EXTENSION_GROUPS).map(([key, group]) => (
-                    <DropdownMenuCheckboxItem
-                      key={key}
-                      checked={selectedGroups.has(key)}
-                      onCheckedChange={() => handleGroupToggle(key)}
-                      onSelect={(e) => e.preventDefault()}
-                    >
-                      {group.name}
-                    </DropdownMenuCheckboxItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              {selectedGroups.size > 0 && (
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Selected groups:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {Array.from(selectedGroups).map((groupKey) => {
-                      const group = EXTENSION_GROUPS[groupKey as keyof typeof EXTENSION_GROUPS];
-                      return (
-                        <Badge
-                          key={groupKey}
-                          variant="secondary"
-                          className="flex items-center space-x-1"
-                        >
-                          <span>{group.name}</span>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground ml-1"
-                            onClick={() => handleRemoveGroup(groupKey)}
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </Badge>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Progress indicator for multi-step creation */}
-            {multiStepCreation.isPending && progressTotal > 0 && (
-              <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium">Progress</span>
-                  <span className="text-muted-foreground">
-                    Step {progressCurrent} of {progressTotal}
-                  </span>
-                </div>
-                <Progress value={(progressCurrent / progressTotal) * 100} className="h-2" />
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  {progressStep}
-                </div>
-              </div>
-            )}
+            <ProgressIndicator
+              isPending={multiStepCreation.isPending}
+              progressStep={progressStep}
+              progressCurrent={progressCurrent}
+              progressTotal={progressTotal}
+            />
           </div>
 
           <DialogFooter>

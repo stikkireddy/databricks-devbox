@@ -1,0 +1,65 @@
+# Databricks Devbox Configuration
+# This file controls extension groups, server settings, and UI configuration
+
+# Extension groups available for devbox instances
+extension_groups:
+  python:
+    name: "Python"
+    description: "Python development tools and language support"
+    extensions:
+      - "ms-python.python"
+      - "ms-pyright.pyright"
+    user_settings:
+      "python.languageServer": "None"
+
+  jupyter:
+    name: "Jupyter"
+    description: "Jupyter notebook support and tools"
+    extensions:
+      - "ms-toolsai.jupyter"
+      - "ms-toolsai.jupyter-renderers"
+      - "ms-toolsai.jupyter-keymap"
+      - "ms-toolsai.vscode-jupyter-cell-tags"
+
+  databricks:
+    name: "Databricks"
+    description: "Databricks platform integration and SQL tools"
+    extensions:
+      - "databricks.databricks"
+      - "databricks.sqltools-databricks-driver"
+
+  # api-explorer:
+  #   name: "API Explorer"
+  #   description: "REST API testing and exploration tools"
+  #   extensions:
+  #     - "rangav.vscode-thunder-client"
+# Server configuration
+server:
+  # Default port for the devbox manager server
+  default_port: 8000
+
+  # Port range for code-server instances
+  code_server_port_range:
+    start: 8010
+    end: 8100
+
+# UI configuration
+ui:
+  # Default extension groups to pre-select
+  default_extension_groups:
+    - "python"
+    - "jupyter"
+
+  # UI behavior settings
+  settings:
+    auto_refresh_interval: 5000  # milliseconds
+    show_advanced_options: false
+    enable_dark_mode: true
+
+  # Workspace initialization defaults
+  workspace:
+    default_type: "empty"  # empty, upload, github
+    max_upload_size_mb: 100
+    supported_archive_types:
+      - ".zip"
+      - ".tar.gz"

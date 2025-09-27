@@ -27,6 +27,9 @@ func setupRoutes(r *gin.Engine, pm *ProcessManager, lm *LogManager) {
 		})
 	})
 
+	// Configuration endpoint
+	r.GET("/config", getConfig())
+
 	// Server management endpoints
 	r.GET("/servers", listServers(pm))
 	r.POST("/servers", createServer(pm))
@@ -525,3 +528,13 @@ func cloneServerWorkspace(pm *ProcessManager) gin.HandlerFunc {
 }
 
 // proxyToCodeServer is defined in proxy.go
+
+func getConfig() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		config := GetConfig()
+		c.JSON(http.StatusOK, gin.H{
+			"status": "success",
+			"data":   config,
+		})
+	}
+}

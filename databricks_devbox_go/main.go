@@ -17,6 +17,9 @@ func main() {
 	// Set Gin to release mode to see routing details
 	gin.SetMode(gin.ReleaseMode)
 
+	// Initialize configuration
+	InitializeConfig()
+
 	// Initialize services
 	logManager := NewLogManager()
 	processManager := NewProcessManager()

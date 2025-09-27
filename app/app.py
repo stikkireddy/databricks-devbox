@@ -279,7 +279,7 @@ def download_binary_from_github(version: str, binary_name: str, target_path: Pat
         print(f"Failed to download binary: {e}")
         return False
 
-def find_binary() -> str:
+def find_binary(is_databricks_app_deployment: bool) -> str:
     """Find the Go binary, prioritizing GitHub releases if version is set."""
     current_dir = Path(__file__).parent.parent
     platform_binary_name = get_platform_binary_name()
@@ -289,7 +289,7 @@ def find_binary() -> str:
     if version is None:
         version = get_latest_tag()
 
-    if version:
+    if version and is_databricks_app_deployment is True:
         # Try to download from GitHub releases first
         downloaded_binary = current_dir / "build" / platform_binary_name
 
@@ -377,7 +377,9 @@ def main():
     # Install databricks CLI if not already available
     install_databricks_cli()
 
-    binary_path = find_binary()
+    is_databricks_app_deployment = os.environ.get("DATABRICKS_APP_DEPLOYMENT", "false") == "true"
+    # Set config file path for the Go binary
+    binary_path = find_binary(is_databricks_app_deployment)
     databricks_app_port = os.environ.get("PORT", "8000")
     port = os.environ.get('DEVBOX_SERVER_PORT', databricks_app_port)
     print(f"Starting Databricks Devbox Manager Server(Go version) from: {binary_path}")
@@ -385,7 +387,7 @@ def main():
     print("Press Ctrl+C to stop the server")
 
     # Set the port environment variable for the Go binary
-    if os.environ.get("DATABRICKS_APP_DEPLOYMENT", "false") == "true":
+    if is_databricks_app_deployment is True:
         from cc import setup_node_and_ccr_and_claude
         
         setup_node_and_ccr_and_claude()
@@ -393,6 +395,15 @@ def main():
     env = os.environ.copy()
     env['DEVBOX_SERVER_PORT'] = port
     env['PATH'] = f"{env['PATH']}:/app/python/source_code/.venv/bin/"
+
+    # Set config file path for the Go binary
+    config_path = os.path.join(os.path.dirname(__file__), "devbox.yaml")
+    if os.path.exists(config_path):
+        env['DEVBOX_CONFIG_PATH'] = config_path
+        print(f"Using config file: {config_path}")
+    else:
+        print(f"Warning: Config file not found at {config_path}, Go binary will use defaults")
+
     env.pop("PORT", None)
     try:
         print("\nNow starting the actual Go server...")

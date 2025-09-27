@@ -27,7 +27,7 @@ const (
 	StatusFailed  ServerStatus = "failed"
 )
 
-type ServerConfig struct {
+type ServerInstance struct {
 	ID            string       `json:"id"`
 	Name          string       `json:"name"`
 	Port          int          `json:"port"`
@@ -44,7 +44,7 @@ type ServerConfig struct {
 }
 
 type ProcessManager struct {
-	servers     map[string]*ServerConfig
+	servers     map[string]*ServerInstance
 	mutex       sync.RWMutex
 	portMap     map[int]string // port -> server_id mapping
 	nextPort    int
@@ -59,7 +59,7 @@ func NewProcessManager() *ProcessManager {
 	os.MkdirAll(dataDir, 0755)
 
 	pm := &ProcessManager{
-		servers:     make(map[string]*ServerConfig),
+		servers:     make(map[string]*ServerInstance),
 		portMap:     make(map[int]string),
 		nextPort:    8500, // Start from 8500 like Python version
 		logger:      NewProcessLogger(),
@@ -100,7 +100,7 @@ func (pm *ProcessManager) getNextAvailablePort() int {
 	}
 }
 
-func (pm *ProcessManager) CreateServer(name, workspacePath string, extensions []string, zipFilePath, githubURL string) (*ServerConfig, error) {
+func (pm *ProcessManager) CreateServer(name, workspacePath string, extensions []string, zipFilePath, githubURL string) (*ServerInstance, error) {
 	// Generate unique ID and port (don't lock here since getNextAvailablePort locks internally)
 	id := uuid.New().String()
 	port := pm.getNextAvailablePort()
@@ -143,7 +143,7 @@ func (pm *ProcessManager) CreateServer(name, workspacePath string, extensions []
 	}
 	log.Printf("Created server data directory: %s", serverDataDir)
 
-	server := &ServerConfig{
+	server := &ServerInstance{
 		ID:            id,
 		Name:          name,
 		Port:          port,
@@ -194,6 +194,12 @@ func (pm *ProcessManager) CreateServer(name, workspacePath string, extensions []
 			log.Printf("All extensions installed successfully for server %s", id)
 		} else {
 			log.Printf("Some extensions failed to install for server %s", id)
+			// Continue anyway, don't fail server creation
+		}
+
+		// Apply user settings after extension installation
+		if err := pm.applyUserSettings(id, extensions); err != nil {
+			log.Printf("Failed to apply user settings for server %s: %v", id, err)
 			// Continue anyway, don't fail server creation
 		}
 	}
@@ -438,11 +444,11 @@ func (pm *ProcessManager) DeleteServer(id string) error {
 	return nil
 }
 
-func (pm *ProcessManager) ListServers() []*ServerConfig {
+func (pm *ProcessManager) ListServers() []*ServerInstance {
 	pm.mutex.RLock()
 	defer pm.mutex.RUnlock()
 
-	servers := make([]*ServerConfig, 0, len(pm.servers))
+	servers := make([]*ServerInstance, 0, len(pm.servers))
 	for _, server := range pm.servers {
 		servers = append(servers, server)
 	}
@@ -450,7 +456,7 @@ func (pm *ProcessManager) ListServers() []*ServerConfig {
 	return servers
 }
 
-func (pm *ProcessManager) GetServer(id string) (*ServerConfig, error) {
+func (pm *ProcessManager) GetServer(id string) (*ServerInstance, error) {
 	pm.mutex.RLock()
 	defer pm.mutex.RUnlock()
 
@@ -462,7 +468,7 @@ func (pm *ProcessManager) GetServer(id string) (*ServerConfig, error) {
 	return server, nil
 }
 
-func (pm *ProcessManager) GetServerByPort(port int) (*ServerConfig, error) {
+func (pm *ProcessManager) GetServerByPort(port int) (*ServerInstance, error) {
 	pm.mutex.RLock()
 	defer pm.mutex.RUnlock()
 
@@ -623,7 +629,7 @@ func (pm *ProcessManager) loadServersFromFile() {
 		return
 	}
 
-	var servers map[string]*ServerConfig
+	var servers map[string]*ServerInstance
 	if err := json.Unmarshal(data, &servers); err != nil {
 		log.Printf("Error parsing servers file: %v", err)
 		return
@@ -813,7 +819,7 @@ func (pm *ProcessManager) refreshStateFromFile() {
 		return
 	}
 
-	var servers map[string]*ServerConfig
+	var servers map[string]*ServerInstance
 	if err := json.Unmarshal(data, &servers); err != nil {
 		// Don't log every second if parse fails, just skip this refresh
 		return
@@ -864,7 +870,7 @@ func (pm *ProcessManager) performHealthCheck() {
 
 	runningCount := 0
 	stoppedCount := 0
-	serversToUpdate := make([]*ServerConfig, 0)
+	serversToUpdate := make([]*ServerInstance, 0)
 
 	for serverID, server := range pm.servers {
 		if server.Status == StatusRunning && server.PID != nil {
@@ -1036,7 +1042,7 @@ func (pm *ProcessManager) updateServerMetrics() {
 }
 
 // Multi-step server creation methods
-func (pm *ProcessManager) CreateServerMetadata(name string) (*ServerConfig, error) {
+func (pm *ProcessManager) CreateServerMetadata(name string) (*ServerInstance, error) {
 	// Generate unique ID and port
 	id := uuid.New().String()
 	port := pm.getNextAvailablePort()
@@ -1059,7 +1065,7 @@ func (pm *ProcessManager) CreateServerMetadata(name string) (*ServerConfig, erro
 		return nil, fmt.Errorf("failed to create server data directory: %v", err)
 	}
 
-	server := &ServerConfig{
+	server := &ServerInstance{
 		ID:            id,
 		Name:          name,
 		Port:          port,
@@ -1126,6 +1132,13 @@ func (pm *ProcessManager) InstallExtensionsForServer(serverID string, extensions
 
 	if extensionSuccess {
 		log.Printf("All extensions installed successfully for server %s", serverID)
+
+		// Apply user settings after extension installation
+		if err := pm.applyUserSettings(serverID, extensions); err != nil {
+			log.Printf("Failed to apply user settings for server %s: %v", serverID, err)
+			// Continue anyway, don't fail extension installation
+		}
+
 		return nil
 	} else {
 		log.Printf("Some extensions failed to install for server %s", serverID)
@@ -1161,5 +1174,88 @@ func (pm *ProcessManager) InitializeWorkspaceForServer(serverID, zipFilePath, gi
 	}
 
 	pm.logger.LogProcessEvent(serverID, server.Name, "WORKSPACE_INITIALIZED", "Workspace initialized successfully")
+	return nil
+}
+
+// applyUserSettings merges user_settings from extension groups into VS Code settings.json
+func (pm *ProcessManager) applyUserSettings(serverID string, installedExtensions []string) error {
+	config := GetConfig()
+	if config == nil {
+		return fmt.Errorf("config not available")
+	}
+
+	// Collect user settings from all installed extension groups
+	userSettings := make(map[string]interface{})
+
+	// Map installed extensions to their extension groups
+	for groupName, group := range config.ExtensionGroups {
+		if group.UserSettings == nil || len(group.UserSettings) == 0 {
+			continue
+		}
+
+		// Check if any extensions from this group are installed
+		groupHasInstalledExtensions := false
+		for _, installedExt := range installedExtensions {
+			for _, groupExt := range group.Extensions {
+				if installedExt == groupExt {
+					groupHasInstalledExtensions = true
+					break
+				}
+			}
+			if groupHasInstalledExtensions {
+				break
+			}
+		}
+
+		// If this group has installed extensions, merge its user settings
+		if groupHasInstalledExtensions {
+			log.Printf("Applying user settings from extension group '%s' for server %s", groupName, serverID)
+			for key, value := range group.UserSettings {
+				userSettings[key] = value
+			}
+		}
+	}
+
+	if len(userSettings) == 0 {
+		log.Printf("No user settings to apply for server %s", serverID)
+		return nil
+	}
+
+	// Create the settings file path
+	userDataDir := filepath.Join(pm.dataDir, serverID)
+	configDir := filepath.Join(userDataDir, "code-server")
+	userDir := filepath.Join(configDir, "User")
+	settingsFile := filepath.Join(userDir, "settings.json")
+
+	// Ensure User directory exists
+	if err := os.MkdirAll(userDir, 0755); err != nil {
+		return fmt.Errorf("failed to create User directory: %v", err)
+	}
+
+	// Read existing settings if file exists
+	existingSettings := make(map[string]interface{})
+	if data, err := os.ReadFile(settingsFile); err == nil {
+		if err := json.Unmarshal(data, &existingSettings); err != nil {
+			log.Printf("Warning: Could not parse existing settings.json for server %s: %v", serverID, err)
+		}
+	}
+
+	// Merge user settings into existing settings (user settings take precedence)
+	for key, value := range userSettings {
+		existingSettings[key] = value
+		log.Printf("Applied setting %s = %v for server %s", key, value, serverID)
+	}
+
+	// Write merged settings back to file
+	data, err := json.MarshalIndent(existingSettings, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal settings: %v", err)
+	}
+
+	if err := os.WriteFile(settingsFile, data, 0644); err != nil {
+		return fmt.Errorf("failed to write settings file: %v", err)
+	}
+
+	log.Printf("Successfully applied %d user settings to %s", len(userSettings), settingsFile)
 	return nil
 }

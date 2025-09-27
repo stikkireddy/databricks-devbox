@@ -1,4 +1,4 @@
-import type { ServerConfig, ServerResponse, HealthInfo, ApiResponse, ApiError } from '../types/api';
+import type { ServerConfig, ServerResponse, HealthInfo, ApiResponse, ApiError, ConfigResponse } from '../types/api';
 
 const API_BASE_URL = '';  // Relative path for same-origin requests
 
@@ -209,6 +209,11 @@ class ApiService {
       }
       throw new Error('An unexpected error occurred');
     }
+  }
+
+  // Configuration endpoint
+  async getConfig(): Promise<ConfigResponse> {
+    return this.request<ConfigResponse>('/config');
   }
 }
 

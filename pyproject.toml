@@ -14,3 +14,8 @@ dependencies = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["databricks_devbox"]
+
+[tool.uv.workspace]
+members = [
+    "workspace/d3e59fbd-bc8d-4ddd-82ab-cc50ce7cc2fc",
+]
