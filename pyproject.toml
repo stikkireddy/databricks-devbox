@@ -3,27 +3,14 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "lha-code-server"
+name = "databricks-devbox"
 version = "0.1.0"
-description = "Code Server Management UI with React and FastAPI"
+description = "Databricks Devbox Management UI with React and FastAPI"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "fastapi>=0.117.1",
-    "psutil>=7.1.0",
-    "uvicorn>=0.37.0",
-    "websockets>=15.0.1",
-    "httpx>=0.25.0",
-    "python-multipart>=0.0.20",
-    "aiohttp>=3.12.15",
-    "aiohttp-proxy>=0.1.2",
-    "brotli>=1.1.0",
+    "requests"
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["lha_code_server"]
-
-[tool.uv.workspace]
-members = [
-    "workspace/bff21437-d81c-4f86-8644-c57276b900f0",
-]
+packages = ["databricks_devbox"]

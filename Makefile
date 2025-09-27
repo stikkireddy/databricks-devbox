@@ -19,24 +19,24 @@ dev: run
 build-go: build
 	@echo "Building Go binary for current platform..."
 	@mkdir -p build
-	@cp web_ui/public/logo.png lha_code_server_go/logo.png
-	@cp -r web_ui/dist lha_code_server_go/web_ui_dist
-	cd lha_code_server_go && go fmt && go build -ldflags="-s -w" -o ../build/lha-code-server
-	@chmod +x build/lha-code-server
+	@cp web_ui/public/logo.png databricks_devbox_go/logo.png
+	@cp -r web_ui/dist databricks_devbox_go/web_ui_dist
+	cd databricks_devbox_go && go fmt && go build -ldflags="-s -w" -o ../build/databricks-devbox
+	@chmod +x build/databricks-devbox
 
 # Build Go binaries for all supported platforms
 build-all: build
 	@echo "Building for all platforms..."
 	@mkdir -p build
-	@cp web_ui/public/logo.png lha_code_server_go/logo.png
-	@rm -rf lha_code_server_go/web_ui_dist
-	@cp -r web_ui/dist lha_code_server_go/web_ui_dist
-	cd lha_code_server_go && go fmt
-	cd lha_code_server_go && GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o ../build/lha-code-server-windows-amd64.exe
-	cd lha_code_server_go && GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o ../build/lha-code-server-darwin-arm64
-	cd lha_code_server_go && GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o ../build/lha-code-server-linux-amd64
-	cd lha_code_server_go && GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o ../build/lha-code-server-linux-arm64
-	@chmod +x build/lha-code-server-*
+	@cp web_ui/public/logo.png databricks_devbox_go/logo.png
+	@rm -rf databricks_devbox_go/web_ui_dist
+	@cp -r web_ui/dist databricks_devbox_go/web_ui_dist
+	cd databricks_devbox_go && go fmt
+	cd databricks_devbox_go && GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o ../build/databricks-devbox-windows-amd64.exe
+	cd databricks_devbox_go && GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o ../build/databricks-devbox-darwin-arm64
+	cd databricks_devbox_go && GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o ../build/databricks-devbox-linux-amd64
+	cd databricks_devbox_go && GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o ../build/databricks-devbox-linux-arm64
+	@chmod +x build/databricks-devbox-*
 	@echo "Built binaries in ./build/ directory:"
 	@ls -la build/
 
@@ -44,15 +44,15 @@ build-all: build
 build-release: build
 	@echo "Building optimized release binaries..."
 	@mkdir -p build
-	@rm -rf lha_code_server_go/web_ui_dist
-	@cp web_ui/public/logo.png lha_code_server_go/logo.png
-	@cp -r web_ui/dist lha_code_server_go/web_ui_dist
-	cd lha_code_server_go && go fmt
-	cd lha_code_server_go && GOOS=windows GOARCH=amd64 go build -ldflags="-s -w -X main.version=$$(date +%Y.%m.%d)" -o ../build/lha-code-server-windows-amd64.exe
-	cd lha_code_server_go && GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w -X main.version=$$(date +%Y.%m.%d)" -o ../build/lha-code-server-darwin-arm64
-	cd lha_code_server_go && GOOS=linux GOARCH=amd64 go build -ldflags="-s -w -X main.version=$$(date +%Y.%m.%d)" -o ../build/lha-code-server-linux-amd64
-	cd lha_code_server_go && GOOS=linux GOARCH=arm64 go build -ldflags="-s -w -X main.version=$$(date +%Y.%m.%d)" -o ../build/lha-code-server-linux-arm64
-	@chmod +x build/lha-code-server-*
+	@rm -rf databricks_devbox_go/web_ui_dist
+	@cp web_ui/public/logo.png databricks_devbox_go/logo.png
+	@cp -r web_ui/dist databricks_devbox_go/web_ui_dist
+	cd databricks_devbox_go && go fmt
+	cd databricks_devbox_go && GOOS=windows GOARCH=amd64 go build -ldflags="-s -w -X main.version=$$(date +%Y.%m.%d)" -o ../build/databricks-devbox-windows-amd64.exe
+	cd databricks_devbox_go && GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w -X main.version=$$(date +%Y.%m.%d)" -o ../build/databricks-devbox-darwin-arm64
+	cd databricks_devbox_go && GOOS=linux GOARCH=amd64 go build -ldflags="-s -w -X main.version=$$(date +%Y.%m.%d)" -o ../build/databricks-devbox-linux-amd64
+	cd databricks_devbox_go && GOOS=linux GOARCH=arm64 go build -ldflags="-s -w -X main.version=$$(date +%Y.%m.%d)" -o ../build/databricks-devbox-linux-arm64
+	@chmod +x build/databricks-devbox-*
 	@echo "Built release binaries in ./build/ directory:"
 	@ls -la build/
 
@@ -83,9 +83,9 @@ clean:
 	rm -rf web_ui/node_modules/
 	rm -rf web_ui/dist/
 	rm -rf build/
-	rm -f lha_code_server_go/lha-code-server-*
-	rm -f lha_code_server_go/logo.png
-	rm -rf lha_code_server_go/web_ui_dist
+	rm -f databricks_devbox_go/databricks-devbox-*
+	rm -f databricks_devbox_go/logo.png
+	rm -rf databricks_devbox_go/web_ui_dist
 
 # Show help
 help:

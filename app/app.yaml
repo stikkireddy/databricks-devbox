@@ -1,7 +1,5 @@
 command: ['python', 'app.py']
 env:
-  - name: 'LHA_SERVER_VERSION'
-    value: '0.1.0'
   - name: 'HOME'
     value: '/app/python/source_code'
   - name: 'SHELL'

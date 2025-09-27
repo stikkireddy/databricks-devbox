@@ -23,7 +23,7 @@ func setupRoutes(r *gin.Engine, pm *ProcessManager, lm *LogManager) {
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"status":  "healthy",
-			"service": "LHA Code Server API",
+			"service": "Databricks Devbox API",
 		})
 	})
 

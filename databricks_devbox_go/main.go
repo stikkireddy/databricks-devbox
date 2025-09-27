@@ -54,7 +54,7 @@ func main() {
 	setupRoutes(r, processManager, logManager)
 
 	// Get port from environment variable, default to 8005
-	port := os.Getenv("LHA_SERVER_PORT")
+	port := os.Getenv("DEVBOX_SERVER_PORT")
 	if port == "" {
 		port = "8005"
 	}
@@ -67,7 +67,7 @@ func main() {
 
 	// Start server in goroutine
 	go func() {
-		log.Printf("Starting LHA Code Server on :%s", port)
+		log.Printf("Starting Databricks Devbox on :%s", port)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Failed to start server: %v", err)
 		}

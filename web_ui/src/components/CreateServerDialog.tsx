@@ -242,9 +242,9 @@ const CreateServerDialog: React.FC<CreateServerDialogProps> = ({ trigger }) => {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[450px]">
         <DialogHeader>
-          <DialogTitle>Create Code Server</DialogTitle>
+          <DialogTitle>Create Devbox Instance</DialogTitle>
           <DialogDescription>
-            Create a new Code server instance. Enter a name, choose how to initialize the workspace, and select extensions.
+            Create a new Devbox instance. Enter a name, choose how to initialize the workspace, and select extensions.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -253,7 +253,7 @@ const CreateServerDialog: React.FC<CreateServerDialogProps> = ({ trigger }) => {
               <Label htmlFor="name">Server Name *</Label>
               <Input
                 id="name"
-                placeholder="My Code Server"
+                placeholder="My Devbox Instance"
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                 required

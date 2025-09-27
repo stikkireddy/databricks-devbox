@@ -1,10 +1,10 @@
-# LHA Code Server Manager
+# Databricks Devbox
 
-A Python-based web application for managing Code server instances with real-time monitoring and process control.
+A Python-based web application for managing Devbox instances with real-time monitoring and process control.
 
 ## Features
 
-- **Server Management**: Create, start, stop, restart, and delete Code server instances
+- **Server Management**: Create, start, stop, restart, and delete Devbox instances
 - **Real-time Monitoring**: Live health metrics including CPU usage, memory consumption, and uptime
 - **Process Control**: Full lifecycle management with process health checking
 - **Reactive UI**: Pure Python frontend using Reflex framework
@@ -15,7 +15,7 @@ A Python-based web application for managing Code server instances with real-time
 
 - **Backend**: FastAPI with WebSocket support for real-time communication
 - **Frontend**: Reflex (Pure Python reactive UI framework)
-- **Process Management**: Python subprocess + psutil for Code server lifecycle
+- **Process Management**: Python subprocess + psutil for Devbox lifecycle
 - **Real-time Updates**: WebSockets for live status monitoring
 
 ## Quick Start
@@ -56,7 +56,7 @@ make help       # Show available commands
 
 ## Usage
 
-### Creating a Code Server
+### Creating a Devbox
 
 1. Click "New Server" in the UI
 2. Enter server name, port, and workspace path

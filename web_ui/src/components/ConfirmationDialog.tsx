@@ -49,7 +49,7 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
       return (
         <div className="space-y-2">
           <p>
-            This will permanently delete the Code server "{server.name}" and stop any running instances.
+            This will permanently delete the Devbox "{server.name}" and stop any running instances.
           </p>
           <div className="space-y-1 text-sm bg-muted p-3 rounded-md">
             <div><span className="font-medium">Port:</span> {server.port}</div>

@@ -213,7 +213,7 @@ const ServerTable: React.FC<{
       <div className="flex flex-col items-center justify-center h-48 text-center">
         <div className="text-sm text-muted-foreground mb-2">No servers found</div>
         <div className="text-xs text-muted-foreground">
-          Create your first Code server to get started
+          Create your first Devbox instance to get started
         </div>
       </div>
     );

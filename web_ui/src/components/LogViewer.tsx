@@ -126,7 +126,7 @@ export default function LogViewer({ serverId }: LogViewerProps) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `lha-logs-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.txt`;
+    a.download = `databricks-devbox-logs-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

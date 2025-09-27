@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Simple, robust Python wrapper to run the Go-based LHA Code Server.
+Simple, robust Python wrapper to run the Go-based Databricks Devbox.
 
 This script starts the Go binary and runs indefinitely on port 8005.
 Uses simpler signal handling to avoid recursive cleanup issues.
@@ -15,6 +15,7 @@ import tarfile
 import shutil
 import zipfile
 from pathlib import Path
+from version import get_latest_tag
 
 
 def get_platform_binary_name() -> str:
@@ -38,12 +39,12 @@ def get_platform_binary_name() -> str:
     elif system == "windows":
         goos = "windows"
         goarch = "amd64"  # Most common on Windows
-        return f"lha-code-server-{goos}-{goarch}.exe"
+        return f"databricks-devbox-{goos}-{goarch}.exe"
     else:
         # Unknown platform, try generic binary
-        return "lha-code-server"
+        return "databricks-devbox"
 
-    return f"lha-code-server-{goos}-{goarch}"
+    return f"databricks-devbox-{goos}-{goarch}"
 
 
 def get_code_server_platform() -> tuple[str, str]:
@@ -263,7 +264,7 @@ def install_code_server(version: str = "v4.104.1") -> bool:
 
 def download_binary_from_github(version: str, binary_name: str, target_path: Path) -> bool:
     """Download binary from GitHub releases."""
-    url = f"https://github.com/stikkireddy/lha-code-server/releases/download/{version}/{binary_name}"
+    url = f"https://github.com/stikkireddy/databricks-devbox/releases/download/{version}/{binary_name}"
 
     try:
         print(f"Downloading binary from {url}...")
@@ -284,7 +285,9 @@ def find_binary() -> str:
     platform_binary_name = get_platform_binary_name()
 
     # Check for version environment variable
-    version = os.environ.get('LHA_SERVER_VERSION')
+    version = os.environ.get('LHA_SERVER_VERSION', None)
+    if version is None:
+        version = get_latest_tag()
 
     if version:
         # Try to download from GitHub releases first
@@ -326,27 +329,27 @@ def find_binary() -> str:
         return str(platform_binary)
 
     # Fallback: Look for generic binary in build directory
-    build_binary = current_dir / "build" / "lha-code-server"
+    build_binary = current_dir / "build" / "databricks-devbox"
     if build_binary.exists():
         return str(build_binary)
 
-    # Fallback: Look for the binary in lha_code_server_go directory
-    go_dir_binary = current_dir / "lha_code_server_go" / "lha-code-server"
+    # Fallback: Look for the binary in databricks_devbox_go directory
+    go_dir_binary = current_dir / "databricks_devbox_go" / "databricks-devbox"
     if go_dir_binary.exists():
         return str(go_dir_binary)
 
     # Fallback: Look in current directory
-    current_binary = current_dir / "lha-code-server"
+    current_binary = current_dir / "databricks-devbox"
     if current_binary.exists():
         return str(current_binary)
 
     # Enhanced error message
     error_msg = f"Go binary not found. Tried:\n"
-    if version:
+    if version is not None:
         error_msg += f"  - GitHub release {version}: {platform_binary_name}\n"
     error_msg += f"  - build/{platform_binary_name}\n"
-    error_msg += f"  - build/lha-code-server\n"
-    error_msg += f"  - lha_code_server_go/lha-code-server\n"
+    error_msg += f"  - build/databricks-devbox\n"
+    error_msg += f"  - databricks_devbox_go/databricks-devbox\n"
     error_msg += f"\nOptions:\n"
     error_msg += f"  - Set LHA_SERVER_VERSION environment variable (e.g., '0.1.0')\n"
     error_msg += f"  - Or build locally: make build-go or make build-all"
@@ -359,11 +362,11 @@ def main():
     if len(sys.argv) > 1 and sys.argv[1] in ['-h', '--help']:
         print(__doc__)
         print("\nUsage: python go_server_runner_simple.py")
-        print("\nThis will start the Go-based LHA Code Server on port 8005")
+        print("\nThis will start the Go-based Databricks Devbox Manager Server on port 8000")
         print("\nEnvironment Variables:")
         print("  LHA_SERVER_VERSION     - Version to download from GitHub releases (e.g., '0.1.0')")
         print("                          If not set, will use local binaries")
-        print("  LHA_SERVER_PORT        - Port to run the server on (default: 8005)")
+        print("  DEVBOX_SERVER_PORT        - Port to run the server on (default: 8000)")
         print("  CODE_SERVER_VERSION    - Version of code-server to install (default: v4.104.1)")
         return 0
 
@@ -376,8 +379,8 @@ def main():
 
     binary_path = find_binary()
     databricks_app_port = os.environ.get("PORT", "8000")
-    port = os.environ.get('LHA_SERVER_PORT', databricks_app_port)
-    print(f"Starting LHA Code Server (Go version) from: {binary_path}")
+    port = os.environ.get('DEVBOX_SERVER_PORT', databricks_app_port)
+    print(f"Starting Databricks Devbox Manager Server(Go version) from: {binary_path}")
     print(f"Server will run on port {port}")
     print("Press Ctrl+C to stop the server")
 
@@ -388,7 +391,7 @@ def main():
         setup_node_and_ccr_and_claude()
 
     env = os.environ.copy()
-    env['LHA_SERVER_PORT'] = port
+    env['DEVBOX_SERVER_PORT'] = port
     env['PATH'] = f"{env['PATH']}:/app/python/source_code/.venv/bin/"
     env.pop("PORT", None)
     try:

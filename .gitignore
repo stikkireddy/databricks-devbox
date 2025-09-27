@@ -20,5 +20,5 @@ workspace/
 logs/
 
 .DS_Store
-lha-code-server-*
-lha-code-server
+databricks-devbox-*
+databricks-devbox

@@ -82,12 +82,12 @@ function ServerManagementApp() {
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-3">
             <div className="flex items-center justify-center w-10 h-10 bg-white rounded-lg p-1.5 border border-border">
-              <img src="/logo.png" alt="LHA Logo" className="w-full h-full object-contain" />
+              <img src="/logo.png" alt="Databricks Devbox Logo" className="w-full h-full object-contain" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold">LHA Code Server</h1>
+              <h1 className="text-3xl font-bold">Databricks Devbox</h1>
               <p className="text-muted-foreground">
-                Manage your Code server instances
+                Manage your Devbox instances
               </p>
             </div>
           </div>
@@ -128,7 +128,7 @@ function ServerManagementApp() {
               <CardHeader>
                 <CardTitle>Server Instances</CardTitle>
                 <CardDescription>
-                  View and manage all your Code server instances. Start, stop, restart, or delete servers as needed.
+                  View and manage all your Devbox instances. Start, stop, restart, or delete servers as needed.
                 </CardDescription>
               </CardHeader>
               <CardContent>
