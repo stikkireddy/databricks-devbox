@@ -10,9 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://databricks-devbox.dev/authentication/tokens/">
+        <link rel="canonical" href="https://databricks-devbox.dev/coding-assistants/caveats/">
       
       
+        <link rel="prev" href="../gemini/">
+      
+      
+        <link rel="next" href="../../code-server/">
       
       
       <link rel="icon" href="../../logo.png">
@@ -20,7 +24,7 @@
     
     
       
-        <title>Token Management - Databricks Devbox</title>
+        <title>Known Caveats - Databricks Devbox</title>
       
     
     
@@ -76,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#token-management" class="md-skip">
+        <a href="#known-caveats-and-limitations" class="md-skip">
           Skip to content
         </a>
       
@@ -115,7 +119,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Token Management
+              Known Caveats
             
           </span>
         </div>
@@ -306,7 +310,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../" class="md-tabs__link">
+      <a href="../../authentication/" class="md-tabs__link">
         
   
   
@@ -323,11 +327,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../coding-assistants/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
           
   
   
@@ -866,7 +872,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../" class="md-nav__link">
+      <a href="../../authentication/" class="md-nav__link">
         
   
   
@@ -885,28 +891,31 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
         
           
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
-        
-          
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
             
   
   
@@ -919,7 +928,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
             Vibe Coding Assistants
@@ -933,7 +942,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../coding-assistants/" class="md-nav__link">
+      <a href="../" class="md-nav__link">
         
   
   
@@ -956,7 +965,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../coding-assistants/claude-code/" class="md-nav__link">
+      <a href="../claude-code/" class="md-nav__link">
         
   
   
@@ -979,7 +988,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../coding-assistants/claude-code-router/" class="md-nav__link">
+      <a href="../claude-code-router/" class="md-nav__link">
         
   
   
@@ -1002,7 +1011,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../coding-assistants/codex/" class="md-nav__link">
+      <a href="../codex/" class="md-nav__link">
         
   
   
@@ -1025,7 +1034,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../coding-assistants/gemini/" class="md-nav__link">
+      <a href="../gemini/" class="md-nav__link">
         
   
   
@@ -1045,10 +1054,32 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../coding-assistants/caveats/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Known Caveats
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1059,6 +1090,50 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#image-and-screenshot-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      Image and Screenshot Support
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Image and Screenshot Support">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#screenshot-paste-not-available" class="md-nav__link">
+    <span class="md-ellipsis">
+      Screenshot Paste Not Available
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1241,28 +1316,19 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#token-generation" class="md-nav__link">
+  <a href="#image-and-screenshot-support" class="md-nav__link">
     <span class="md-ellipsis">
-      Token Generation
+      Image and Screenshot Support
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Token Generation">
+    <nav class="md-nav" aria-label="Image and Screenshot Support">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#how-it-works" class="md-nav__link">
+  <a href="#screenshot-paste-not-available" class="md-nav__link">
     <span class="md-ellipsis">
-      How It Works
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Configuration
+      Screenshot Paste Not Available
     </span>
   </a>
   
@@ -1270,198 +1336,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#token-storage" class="md-nav__link">
-    <span class="md-ellipsis">
-      Token Storage
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#token-lifecycle" class="md-nav__link">
-    <span class="md-ellipsis">
-      Token Lifecycle
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Token Lifecycle">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#expiry-handling" class="md-nav__link">
-    <span class="md-ellipsis">
-      Expiry Handling
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#security" class="md-nav__link">
-    <span class="md-ellipsis">
-      Security
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Security">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#token-permissions" class="md-nav__link">
-    <span class="md-ellipsis">
-      Token Permissions
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#token-isolation" class="md-nav__link">
-    <span class="md-ellipsis">
-      Token Isolation
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#usage" class="md-nav__link">
-    <span class="md-ellipsis">
-      Usage
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Usage">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#claude-code" class="md-nav__link">
-    <span class="md-ellipsis">
-      Claude Code
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#manual-token-access" class="md-nav__link">
-    <span class="md-ellipsis">
-      Manual Token Access
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#troubleshooting" class="md-nav__link">
-    <span class="md-ellipsis">
-      Troubleshooting
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Troubleshooting">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#token-not-generated" class="md-nav__link">
-    <span class="md-ellipsis">
-      Token Not Generated
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#token-expired" class="md-nav__link">
-    <span class="md-ellipsis">
-      Token Expired
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#permission-denied" class="md-nav__link">
-    <span class="md-ellipsis">
-      Permission Denied
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#best-practices" class="md-nav__link">
-    <span class="md-ellipsis">
-      Best Practices
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Best Practices">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-set-appropriate-expiry" class="md-nav__link">
-    <span class="md-ellipsis">
-      1. Set Appropriate Expiry
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-monitor-token-usage" class="md-nav__link">
-    <span class="md-ellipsis">
-      2. Monitor Token Usage
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-secure-token-storage" class="md-nav__link">
-    <span class="md-ellipsis">
-      3. Secure Token Storage
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#next-steps" class="md-nav__link">
-    <span class="md-ellipsis">
-      Next Steps
-    </span>
-  </a>
   
 </li>
       
@@ -1484,182 +1358,22 @@
   
 
 
-<h1 id="token-management">Token Management<a class="headerlink" href="#token-management" title="Permanent link">&para;</a></h1>
-<p>Databricks DevBox uses Databricks Personal Access Tokens (PATs) to authenticate with Databricks-hosted AI models for vibe coding assistants.</p>
-<h2 id="token-generation">Token Generation<a class="headerlink" href="#token-generation" title="Permanent link">&para;</a></h2>
-<p>Tokens are automatically generated using the Databricks SDK when the app starts.</p>
-<h3 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h3>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># app/vibe_code.py:11</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">generate_spn_token</span><span class="p">(</span><span class="n">duration_seconds</span> <span class="o">=</span> <span class="mi">3600</span><span class="p">):</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">w</span> <span class="o">=</span> <span class="n">WorkspaceClient</span><span class="p">()</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">token_expiry</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;CLAUDE_CODE_TOKEN_EXPIRY_SECONDS&quot;</span><span class="p">,</span> <span class="n">duration_seconds</span><span class="p">))</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">token</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">tokens</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        <span class="n">comment</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;sdk-</span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">time_ns</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>        <span class="n">lifetime_seconds</span><span class="o">=</span><span class="n">token_expiry</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="p">)</span><span class="o">.</span><span class="n">token_value</span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="k">return</span> <span class="n">token</span>
-</span></code></pre></div>
-<p><strong>Process:</strong></p>
+<h1 id="known-caveats-and-limitations">Known Caveats and Limitations<a class="headerlink" href="#known-caveats-and-limitations" title="Permanent link">&para;</a></h1>
+<p>This page documents known limitations and workarounds when using vibe coding assistants in Databricks Devbox.</p>
+<h2 id="image-and-screenshot-support">Image and Screenshot Support<a class="headerlink" href="#image-and-screenshot-support" title="Permanent link">&para;</a></h2>
+<h3 id="screenshot-paste-not-available">Screenshot Paste Not Available<a class="headerlink" href="#screenshot-paste-not-available" title="Permanent link">&para;</a></h3>
+<p>Currently, pasting screenshots directly into the chat is not supported.</p>
+<p><strong>Workaround:</strong> To share images with the assistant:</p>
 <ol>
-<li><code>WorkspaceClient()</code> authenticates using Databricks App credentials</li>
-<li>Creates a new token via Databricks API</li>
-<li>Token has configurable expiry (default: 3600 seconds = 1 hour)</li>
-<li>Token stored in CCR (Claude Code Router) configuration</li>
+<li>Upload your image file into the code-server editor</li>
+<li>Reference the file using the <code>@</code> symbol followed by the file path</li>
+<li>The assistant will be able to view and analyze the image</li>
 </ol>
-<h3 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h3>
-<p>Set token expiry via environment variable:</p>
-<div class="language-yaml highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># app.yaml</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nt">env</span><span class="p">:</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;CLAUDE_CODE_TOKEN_EXPIRY_SECONDS&#39;</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;7200&#39;</span><span class="w">  </span><span class="c1"># 2 hours</span>
-</span></code></pre></div>
-<h2 id="token-storage">Token Storage<a class="headerlink" href="#token-storage" title="Permanent link">&para;</a></h2>
-<p>Tokens are stored in the CCR configuration file:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>~/.claude-code-router/config.json
-</span></code></pre></div>
-<p><strong>Configuration structure:</strong></p>
-<div class="language-json highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">&quot;Providers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="p">{</span>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;databricks&quot;</span><span class="p">,</span>
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">      </span><span class="nt">&quot;api_base_url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://&lt;workspace&gt;/serving-endpoints/databricks-claude-sonnet-4/invocations&quot;</span><span class="p">,</span>
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">      </span><span class="nt">&quot;api_key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;generated-token&gt;&quot;</span><span class="p">,</span>
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">      </span><span class="nt">&quot;models&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;databricks-claude-sonnet-4&quot;</span><span class="p">]</span>
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">    </span><span class="p">}</span>
-</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">  </span><span class="p">]</span>
-</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="p">}</span>
-</span></code></pre></div>
-<h2 id="token-lifecycle">Token Lifecycle<a class="headerlink" href="#token-lifecycle" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>sequenceDiagram
-    participant App as Python App
-    participant SDK as Databricks SDK
-    participant API as Databricks API
-    participant CCR as CCR Config
-
-    App-&gt;&gt;SDK: generate_spn_token()
-    SDK-&gt;&gt;API: tokens.create(lifetime_seconds)
-    API--&gt;&gt;SDK: token_value
-    SDK--&gt;&gt;App: token
-    App-&gt;&gt;CCR: Write config.json
-    Note over CCR: Token expires after lifetime_seconds
-    Note over App: On next restart, new token generated</code></pre>
-<h3 id="expiry-handling">Expiry Handling<a class="headerlink" href="#expiry-handling" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Automatic regeneration</strong> on app restart</li>
-<li><strong>No refresh mechanism</strong> during runtime (tokens must last for app lifetime)</li>
-<li><strong>Recommendation</strong>: Set expiry longer than expected app uptime</li>
-</ul>
-<h2 id="security">Security<a class="headerlink" href="#security" title="Permanent link">&para;</a></h2>
-<h3 id="token-permissions">Token Permissions<a class="headerlink" href="#token-permissions" title="Permanent link">&para;</a></h3>
-<p>Generated tokens have:</p>
-<ul>
-<li>✅ <strong>Read access</strong> to Databricks workspace</li>
-<li>✅ <strong>Model serving endpoint</strong> access</li>
-<li>❌ <strong>No write permissions</strong> to workspace data</li>
-<li>❌ <strong>No admin permissions</strong></li>
-</ul>
-<h3 id="token-isolation">Token Isolation<a class="headerlink" href="#token-isolation" title="Permanent link">&para;</a></h3>
-<ul>
-<li>Each app deployment generates its own token</li>
-<li>Tokens are not shared between environments</li>
-<li>Tokens stored in app filesystem (not version controlled)</li>
-</ul>
-<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
-<h3 id="claude-code">Claude Code<a class="headerlink" href="#claude-code" title="Permanent link">&para;</a></h3>
-<p>Token is automatically used by Claude Code via CCR proxy:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># User runs</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>cc
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Behind the scenes:</span>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="c1"># 1. Claude Code connects to CCR proxy</span>
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="c1"># 2. CCR forwards to Databricks endpoint with token</span>
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="c1"># 3. Response routed back to Claude Code</span>
-</span></code></pre></div>
-<h3 id="manual-token-access">Manual Token Access<a class="headerlink" href="#manual-token-access" title="Permanent link">&para;</a></h3>
-<p>For debugging or custom scripts:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Read CCR config</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>cat<span class="w"> </span>~/.claude-code-router/config.json<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">&#39;.Providers[0].api_key&#39;</span>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># Use token with curl</span>
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="nv">TOKEN</span><span class="o">=</span><span class="k">$(</span>cat<span class="w"> </span>~/.claude-code-router/config.json<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>-r<span class="w"> </span><span class="s1">&#39;.Providers[0].api_key&#39;</span><span class="k">)</span>
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">  </span>https://&lt;workspace&gt;/serving-endpoints/databricks-claude-sonnet-4/invocations
-</span></code></pre></div>
-<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
-<h3 id="token-not-generated">Token Not Generated<a class="headerlink" href="#token-not-generated" title="Permanent link">&para;</a></h3>
-<p><strong>Symptoms:</strong></p>
-<ul>
-<li>Claude Code fails to connect</li>
-<li>CCR config missing or empty</li>
-</ul>
-<p><strong>Solutions:</strong></p>
-<ol>
-<li>Check Unity Catalog is enabled</li>
-<li>Verify Databricks SDK authentication</li>
-<li>Check app logs for token generation errors</li>
-</ol>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Check if token was generated</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>ls<span class="w"> </span>-la<span class="w"> </span>~/.claude-code-router/config.json
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>cat<span class="w"> </span>~/.claude-code-router/config.json<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">&#39;.Providers&#39;</span>
-</span></code></pre></div>
-<h3 id="token-expired">Token Expired<a class="headerlink" href="#token-expired" title="Permanent link">&para;</a></h3>
-<p><strong>Symptoms:</strong></p>
-<ul>
-<li>Claude Code works initially, then fails</li>
-<li>HTTP 401 errors from Databricks endpoint</li>
-</ul>
-<p><strong>Solutions:</strong></p>
-<ol>
-<li>Restart the app (generates new token)</li>
-<li>Increase token expiry: <code>CLAUDE_CODE_TOKEN_EXPIRY_SECONDS=86400</code> (24 hours)</li>
-</ol>
-<h3 id="permission-denied">Permission Denied<a class="headerlink" href="#permission-denied" title="Permanent link">&para;</a></h3>
-<p><strong>Symptoms:</strong></p>
-<ul>
-<li>Token generation fails</li>
-<li>"Insufficient permissions" error</li>
-</ul>
-<p><strong>Solutions:</strong></p>
-<ol>
-<li>Ensure app has workspace access</li>
-<li>Check Unity Catalog permissions</li>
-<li>Verify Service Principal credentials</li>
-</ol>
-<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
-<h3 id="1-set-appropriate-expiry">1. Set Appropriate Expiry<a class="headerlink" href="#1-set-appropriate-expiry" title="Permanent link">&para;</a></h3>
-<div class="language-yaml highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># For long-running apps (24 hours)</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nt">env</span><span class="p">:</span>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;CLAUDE_CODE_TOKEN_EXPIRY_SECONDS&#39;</span>
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;86400&#39;</span>
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>
-</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="c1"># For short-lived demos (1 hour)</span>
-</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="nt">env</span><span class="p">:</span>
-</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;CLAUDE_CODE_TOKEN_EXPIRY_SECONDS&#39;</span>
-</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">    </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;3600&#39;</span>
-</span></code></pre></div>
-<h3 id="2-monitor-token-usage">2. Monitor Token Usage<a class="headerlink" href="#2-monitor-token-usage" title="Permanent link">&para;</a></h3>
-<p>Check CCR logs for token issues:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>tail<span class="w"> </span>-f<span class="w"> </span>~/.claude-code-router/plugin.log
-</span></code></pre></div>
-<h3 id="3-secure-token-storage">3. Secure Token Storage<a class="headerlink" href="#3-secure-token-storage" title="Permanent link">&para;</a></h3>
-<ul>
-<li>❌ <strong>Never commit</strong> config.json to version control</li>
-<li>❌ <strong>Never share</strong> tokens between users</li>
-<li>✅ <strong>Generate fresh tokens</strong> for each deployment</li>
-</ul>
-<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
-<div class="grid cards">
-<ul>
-<li>
-<p><strong><a href="../databricks-integration/">Databricks Integration →</a></strong></p>
-<p>How SDK authentication works</p>
-</li>
-<li>
-<p><strong><a href="../../coding-assistants/claude-code-router/">Claude Code Router →</a></strong></p>
-<p>CCR configuration details</p>
-</li>
-</ul>
-</div>
+<p><strong>Example:</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>@screenshot.png Can you help me understand what&#39;s happening in this UI?
+</span></code></pre></div></p>
+<hr />
+<p><em>More caveats will be documented here as they are discovered.</em></p>
 
 
 
