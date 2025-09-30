@@ -12,7 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useCreateServer, useCreateServerWithWorkspace, useMultiStepServerCreation } from '@/hooks/useServers';
+import { useCreateServer, useCreateServerWithWorkspace } from '@/hooks/useServers';
 import { useExtensionGroups } from '@/hooks/useConfig';
 
 interface CreateServerRequest {
@@ -22,14 +22,33 @@ interface CreateServerRequest {
 }
 import { WorkspaceTabs } from './WorkspaceTabs';
 import { ExtensionGroups } from './ExtensionGroups';
-import { ProgressIndicator } from './ProgressIndicator';
 
 interface CreateServerDialogProps {
   trigger?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  onCreateServer?: (
+    name: string,
+    extensions: string[],
+    groupsWithUserSettings: string[],
+    zipFile?: File,
+    githubUrl?: string
+  ) => Promise<boolean> | void;
+  extensionGroups?: Record<string, any>;
 }
 
-const CreateServerDialog: React.FC<CreateServerDialogProps> = ({ trigger }) => {
-  const [open, setOpen] = useState(false);
+const CreateServerDialog: React.FC<CreateServerDialogProps> = ({
+  trigger,
+  open: externalOpen,
+  onOpenChange: externalOnOpenChange,
+  onCreateServer,
+  extensionGroups
+}) => {
+  const [internalOpen, setInternalOpen] = useState(false);
+
+  // Use external open state if provided, otherwise use internal state
+  const open = externalOpen !== undefined ? externalOpen : internalOpen;
+  const setOpen = externalOnOpenChange || setInternalOpen;
   const [formData, setFormData] = useState<CreateServerRequest>({
     name: '',
     workspace_path: '',
@@ -42,17 +61,13 @@ const CreateServerDialog: React.FC<CreateServerDialogProps> = ({ trigger }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Progress tracking state
-  const [progressStep, setProgressStep] = useState('');
-  const [progressCurrent, setProgressCurrent] = useState(0);
-  const [progressTotal, setProgressTotal] = useState(0);
-
-  // Get extension groups from config
-  const { extensionGroups, isLoading: configLoading } = useExtensionGroups();
-
+  // Fallback for legacy usage when no parent props are provided
   const createServerMutation = useCreateServer();
   const createServerWithWorkspaceMutation = useCreateServerWithWorkspace();
-  const multiStepCreation = useMultiStepServerCreation();
+  const { extensionGroups: fallbackExtensionGroups, isLoading: configLoading } = useExtensionGroups();
+
+  // Use prop extensionGroups if provided, otherwise use hook result
+  const effectiveExtensionGroups = extensionGroups || fallbackExtensionGroups;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,33 +85,47 @@ const CreateServerDialog: React.FC<CreateServerDialogProps> = ({ trigger }) => {
 
     const allExtensions: string[] = [];
     selectedGroups.forEach(groupKey => {
-      const group = extensionGroups[groupKey];
+      const group = effectiveExtensionGroups && effectiveExtensionGroups[groupKey];
       if (group) {
         allExtensions.push(...group.extensions);
       }
     });
 
     try {
-      if (workspaceType === 'empty') {
+      // Calculate groups with user settings
+      const groupsWithUserSettings: string[] = [];
+      for (const groupKey of selectedGroups) {
+        if (effectiveExtensionGroups && effectiveExtensionGroups[groupKey]) {
+          if (effectiveExtensionGroups[groupKey].user_settings && Object.keys(effectiveExtensionGroups[groupKey].user_settings).length > 0) {
+            groupsWithUserSettings.push(groupKey);
+          }
+        }
+      }
+
+      // Use parent creation function if available
+      if (onCreateServer) {
+        // Start the creation process but don't wait for it to complete
+        onCreateServer(
+          formData.name,
+          allExtensions,
+          groupsWithUserSettings,
+          workspaceType === 'upload' ? selectedFile || undefined : undefined,
+          workspaceType === 'github' ? githubUrl : undefined
+        );
+      } else {
+        // Fallback to legacy creation for backwards compatibility
+        if (selectedGroups.size > 0) {
+          // This should not happen in the new architecture, but kept for safety
+          console.warn('Using legacy creation - this should not happen in the new architecture');
+        }
         const submitData: CreateServerRequest = {
           ...formData,
           extensions: allExtensions
         };
         await createServerMutation.mutateAsync(submitData as any);
-      } else {
-        await multiStepCreation.createServerMultiStep(
-          formData.name,
-          allExtensions,
-          workspaceType === 'upload' ? selectedFile || undefined : undefined,
-          workspaceType === 'github' ? githubUrl : undefined,
-          (step: string, current: number, total: number) => {
-            setProgressStep(step);
-            setProgressCurrent(current);
-            setProgressTotal(total);
-          }
-        );
       }
 
+      // Close dialog immediately so user can see progress in table
       setOpen(false);
       resetForm();
     } catch (error) {
@@ -115,9 +144,6 @@ const CreateServerDialog: React.FC<CreateServerDialogProps> = ({ trigger }) => {
     setWorkspaceType('empty');
     setGithubUrl('');
     setSelectedFile(null);
-    setProgressStep('');
-    setProgressCurrent(0);
-    setProgressTotal(0);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -169,10 +195,6 @@ const CreateServerDialog: React.FC<CreateServerDialogProps> = ({ trigger }) => {
   };
 
   const getLoadingMessage = () => {
-    if (multiStepCreation.isPending && progressStep) {
-      return progressStep;
-    }
-
     if (createServerMutation.isPending && workspaceType === 'empty') {
       return 'Creating...';
     }
@@ -190,23 +212,25 @@ const CreateServerDialog: React.FC<CreateServerDialogProps> = ({ trigger }) => {
   };
 
   const isAnyMutationPending = () => {
-    return createServerMutation.isPending || createServerWithWorkspaceMutation.isPending || multiStepCreation.isPending;
+    return createServerMutation.isPending || createServerWithWorkspaceMutation.isPending;
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger || (
-          <Button disabled={isAnyMutationPending()}>
-            {isAnyMutationPending() ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Plus className="mr-2 h-4 w-4" />
-            )}
-            {isAnyMutationPending() ? getLoadingMessage() : 'Create Server'}
-          </Button>
-        )}
-      </DialogTrigger>
+      {(trigger || externalOpen === undefined) && (
+        <DialogTrigger asChild>
+          {trigger || (
+            <Button disabled={isAnyMutationPending()}>
+              {isAnyMutationPending() ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Plus className="mr-2 h-4 w-4" />
+              )}
+              {isAnyMutationPending() ? getLoadingMessage() : 'Create Server'}
+            </Button>
+          )}
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[450px]">
         <DialogHeader>
           <DialogTitle>Create Devbox Instance</DialogTitle>
@@ -241,19 +265,12 @@ const CreateServerDialog: React.FC<CreateServerDialogProps> = ({ trigger }) => {
 
             <ExtensionGroups
               configLoading={configLoading}
-              extensionGroups={extensionGroups}
+              extensionGroups={effectiveExtensionGroups}
               selectedGroups={selectedGroups}
               dropdownOpen={dropdownOpen}
               setDropdownOpen={setDropdownOpen}
               onGroupToggle={handleGroupToggle}
               onRemoveGroup={handleRemoveGroup}
-            />
-
-            <ProgressIndicator
-              isPending={multiStepCreation.isPending}
-              progressStep={progressStep}
-              progressCurrent={progressCurrent}
-              progressTotal={progressTotal}
             />
           </div>
 

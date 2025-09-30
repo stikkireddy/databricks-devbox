@@ -1,4 +1,4 @@
-import type { ServerConfig, ServerResponse, HealthInfo, ApiResponse, ApiError, ConfigResponse } from '../types/api';
+import type { ServerConfig, ServerResponse, HealthInfo, ApiResponse, ApiError, ConfigResponse, TemplatesResponse, CreateServerFromTemplateRequest } from '../types/api';
 
 const API_BASE_URL = '';  // Relative path for same-origin requests
 
@@ -165,10 +165,17 @@ class ApiService {
     });
   }
 
-  async installServerExtensions(serverId: string, extensions: string[]): Promise<ApiResponse> {
-    return this.request<ApiResponse>(`/servers/${serverId}/install-extensions`, {
+  async installSingleExtension(serverId: string, extension: string): Promise<ApiResponse> {
+    return this.request<ApiResponse>(`/servers/${serverId}/install-extension`, {
       method: 'POST',
-      body: JSON.stringify({ extensions }),
+      body: JSON.stringify({ extension }),
+    });
+  }
+
+  async applyGroupSettings(serverId: string, groupName: string): Promise<ApiResponse> {
+    return this.request<ApiResponse>(`/servers/${serverId}/apply-group-settings`, {
+      method: 'POST',
+      body: JSON.stringify({ groupName }),
     });
   }
 
@@ -209,6 +216,18 @@ class ApiService {
       }
       throw new Error('An unexpected error occurred');
     }
+  }
+
+  // Template endpoints
+  async getTemplates(): Promise<TemplatesResponse> {
+    return this.request<TemplatesResponse>('/templates');
+  }
+
+  async createServerFromTemplate(request: CreateServerFromTemplateRequest): Promise<ServerResponse> {
+    return this.request<ServerResponse>('/servers/create-from-template', {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
   }
 
   // Configuration endpoint

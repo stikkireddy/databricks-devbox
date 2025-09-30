@@ -22,3 +22,5 @@ logs/
 .DS_Store
 databricks-devbox-*
 databricks-devbox
+.codex/
+databricks_devbox_go/web_ui_dist/

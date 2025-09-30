@@ -50,11 +50,39 @@ type UIConfig struct {
 	Workspace              WorkspaceConfig `yaml:"workspace" json:"workspace"`
 }
 
+// IconLink represents a clickable icon link in templates
+type IconLink struct {
+	LucideIcon string `yaml:"lucide_icon" json:"lucide_icon"`
+	URL        string `yaml:"url" json:"url"`
+}
+
+// TemplateItem represents a template with all its configuration
+type TemplateItem struct {
+	Name            string     `yaml:"name" json:"name"`
+	Description     string     `yaml:"description" json:"description"`
+	ExtensionGroups []string   `yaml:"extensions_groups" json:"extensions_groups"`
+	ThumbnailURL    string     `yaml:"thumbnail_url" json:"thumbnail_url"`
+	GithubURL       string     `yaml:"github_url" json:"github_url"`
+	IconLinks       []IconLink `yaml:"icon_links" json:"icon_links"`
+}
+
+// TemplateTab represents a tab containing templates
+type TemplateTab struct {
+	Name  string         `yaml:"name" json:"name"`
+	Items []TemplateItem `yaml:"items" json:"items"`
+}
+
+// PackagedAssets represents the packaged assets configuration
+type PackagedAssets struct {
+	Tabs []TemplateTab `yaml:"tabs" json:"tabs"`
+}
+
 // DevboxConfig represents the complete configuration
 type DevboxConfig struct {
 	ExtensionGroups map[string]ExtensionGroup `yaml:"extension_groups" json:"extension_groups"`
 	Server          ServerConfig              `yaml:"server" json:"server"`
 	UI              UIConfig                  `yaml:"ui" json:"ui"`
+	PackagedAssets  *PackagedAssets           `yaml:"packaged_assets,omitempty" json:"packaged_assets,omitempty"`
 }
 
 // Global config instance

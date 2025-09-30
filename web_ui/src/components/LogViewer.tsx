@@ -117,6 +117,16 @@ export default function LogViewer({ serverId }: LogViewerProps) {
       .map(log => log.serverName!)
   )).sort();
 
+  // Auto-correct invalid server selection to "all"
+  useEffect(() => {
+    if (selectedServer && selectedServer !== 'all' && selectedServer !== 'system') {
+      // Check if the selected server exists in the available servers
+      if (!uniqueServers.includes(selectedServer)) {
+        setSelectedServer('all');
+      }
+    }
+  }, [selectedServer, uniqueServers, setSelectedServer]);
+
   const downloadLogs = () => {
     const logText = filteredLogs.map(log =>
       `[${log.timestamp}] [${log.level}] [${log.source}] ${log.serverName ? `[${log.serverName}] ` : ''}${log.message}`

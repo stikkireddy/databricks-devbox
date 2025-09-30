@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle, Trash2 } from 'lucide-react';
+import { AlertTriangle, Trash2, Loader2 } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -51,9 +51,9 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
           <p>
             This will permanently delete the Devbox "{server.name}" and stop any running instances.
           </p>
-          <div className="space-y-1 text-sm bg-muted p-3 rounded-md">
+          <div className="space-y-1 text-sm bg-muted p-3 rounded-md text-foreground">
             <div><span className="font-medium">Port:</span> {server.port}</div>
-            <div><span className="font-medium">Workspace:</span> {server.workspace_path}</div>
+            <div><span className="font-medium">Server ID:</span> {server.id}</div>
             <div><span className="font-medium">Status:</span> {server.status}</div>
           </div>
           <p className="text-sm text-muted-foreground">
@@ -99,6 +99,7 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
             }
             disabled={loading}
           >
+            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {loading ? 'Processing...' : confirmText}
           </AlertDialogAction>
         </AlertDialogFooter>

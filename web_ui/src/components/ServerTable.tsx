@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Square, RotateCcw, Trash2, ExternalLink, Loader2 } from 'lucide-react';
+import { Play, Square, RotateCcw, Trash2, ExternalLink, Loader2, FileText, Info } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -10,6 +10,12 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import type { ServerResponse } from '@/types/api';
 import {
   useServers,
@@ -63,7 +69,8 @@ const ServerActionButtons: React.FC<{
   server: ServerResponse;
   onDeleteConfirm: (id: string) => void;
   onServerAction?: () => void;
-}> = ({ server, onDeleteConfirm, onServerAction }) => {
+  isInstalling?: boolean;
+}> = ({ server, onDeleteConfirm, onServerAction, isInstalling }) => {
   const startServerMutation = useStartServer();
   const stopServerMutation = useStopServer();
   const restartServerMutation = useRestartServer();
@@ -75,7 +82,8 @@ const ServerActionButtons: React.FC<{
   const isServerOperationPending =
     startServerMutation.isPending ||
     stopServerMutation.isPending ||
-    restartServerMutation.isPending;
+    restartServerMutation.isPending ||
+    isInstalling;
 
   return (
     <div className="flex items-center space-x-1">
@@ -161,6 +169,23 @@ const ServerActionButtons: React.FC<{
         </Button>
       )}
 
+      {/* Logs Button - always shown */}
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-8 w-8 p-0"
+        asChild
+        title="View logs"
+      >
+        <a
+          href={`http://localhost:8000/?server=${server.name}&tab=logs`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <FileText className="h-4 w-4" />
+        </a>
+      </Button>
+
       {/* Delete Button - always shown */}
       <Button
         variant="ghost"
@@ -179,9 +204,15 @@ const ServerActionButtons: React.FC<{
 const ServerTable: React.FC<{
   onDeleteConfirm: (id: string) => void;
   onServerAction?: () => void;
+  installationProgress?: Map<string, {
+    step: string;
+    current: number;
+    total: number;
+  }>;
 }> = ({
   onDeleteConfirm,
   onServerAction,
+  installationProgress,
 }) => {
   const { data: servers = [], isLoading, error } = useServers();
 
@@ -227,12 +258,11 @@ const ServerTable: React.FC<{
             <TableHead>Name</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Port</TableHead>
-            <TableHead>Workspace</TableHead>
             <TableHead>Uptime</TableHead>
             <TableHead>CPU</TableHead>
             <TableHead>Memory</TableHead>
             <TableHead>PID</TableHead>
-            <TableHead className="w-[180px]">Actions</TableHead>
+            <TableHead className="w-[220px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -243,26 +273,46 @@ const ServerTable: React.FC<{
             const isServerRestarting = restartServerMutation.isPending;
             const hasAnyOperation = isServerStarting || isServerStopping || isServerRestarting;
 
+            // Check if this server is currently installing
+            const installProgress = installationProgress?.get(server.id);
+            const isInstalling = !!installProgress;
+
             return (
               <TableRow key={server.id}>
                 <TableCell className="font-medium">{server.name}</TableCell>
                 <TableCell>
                   <div className="flex items-center space-x-2">
-                    <Badge variant={getStatusVariant(server.status)}>
-                      {hasAnyOperation && (
-                        <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                      )}
-                      {isServerStarting ? 'Starting...' :
-                       isServerStopping ? 'Stopping...' :
-                       isServerRestarting ? 'Restarting...' :
-                       server.status}
-                    </Badge>
+                    {isInstalling && installProgress ? (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="flex items-center space-x-1">
+                              <Badge variant="secondary">
+                                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                                Installing ({installProgress.current}/{installProgress.total})
+                              </Badge>
+                              <Info className="h-3 w-3 text-muted-foreground" />
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{installProgress.step}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ) : (
+                      <Badge variant={getStatusVariant(server.status)}>
+                        {(hasAnyOperation) && (
+                          <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                        )}
+                        {isServerStarting ? 'Starting...' :
+                         isServerStopping ? 'Stopping...' :
+                         isServerRestarting ? 'Restarting...' :
+                         server.status}
+                      </Badge>
+                    )}
                   </div>
                 </TableCell>
               <TableCell>{server.port}</TableCell>
-              <TableCell className="max-w-[200px] truncate" title={server.workspace_path}>
-                {server.workspace_path}
-              </TableCell>
               <TableCell>{formatUptime(server.uptime)}</TableCell>
               <TableCell>{formatCpuPercent(server.cpu_percent)}</TableCell>
               <TableCell>{formatMemory(server.memory_mb)}</TableCell>
@@ -272,6 +322,7 @@ const ServerTable: React.FC<{
                   server={server}
                   onDeleteConfirm={onDeleteConfirm}
                   onServerAction={onServerAction}
+                  isInstalling={isInstalling}
                 />
               </TableCell>
             </TableRow>

@@ -27,6 +27,31 @@ const (
 	StatusFailed  ServerStatus = "failed"
 )
 
+type ExtensionInstallStatus string
+
+const (
+	ExtensionPending    ExtensionInstallStatus = "pending"
+	ExtensionInstalling ExtensionInstallStatus = "installing"
+	ExtensionCompleted  ExtensionInstallStatus = "completed"
+	ExtensionFailed     ExtensionInstallStatus = "failed"
+)
+
+type ExtensionProgress struct {
+	Name   string                 `json:"name"`
+	Status ExtensionInstallStatus `json:"status"`
+	Error  string                 `json:"error,omitempty"`
+}
+
+type ExtensionInstallationProgress struct {
+	ServerID         string              `json:"server_id"`
+	Total            int                 `json:"total"`
+	Completed        int                 `json:"completed"`
+	Failed           int                 `json:"failed"`
+	CurrentExtension string              `json:"current_extension"`
+	Extensions       []ExtensionProgress `json:"extensions"`
+	IsComplete       bool                `json:"is_complete"`
+}
+
 type ServerInstance struct {
 	ID            string       `json:"id"`
 	Name          string       `json:"name"`
@@ -44,14 +69,16 @@ type ServerInstance struct {
 }
 
 type ProcessManager struct {
-	servers     map[string]*ServerInstance
-	mutex       sync.RWMutex
-	portMap     map[int]string // port -> server_id mapping
-	nextPort    int
-	logger      *ProcessLogger
-	logManager  *LogManager
-	dataDir     string
-	serversFile string
+	servers                map[string]*ServerInstance
+	mutex                  sync.RWMutex
+	portMap                map[int]string // port -> server_id mapping
+	nextPort               int
+	logger                 *ProcessLogger
+	logManager             *LogManager
+	dataDir                string
+	serversFile            string
+	extensionProgress      map[string]*ExtensionInstallationProgress // server_id -> progress
+	extensionProgressMutex sync.RWMutex
 }
 
 func NewProcessManager() *ProcessManager {
@@ -59,12 +86,13 @@ func NewProcessManager() *ProcessManager {
 	os.MkdirAll(dataDir, 0755)
 
 	pm := &ProcessManager{
-		servers:     make(map[string]*ServerInstance),
-		portMap:     make(map[int]string),
-		nextPort:    8500, // Start from 8500 like Python version
-		logger:      NewProcessLogger(),
-		dataDir:     dataDir,
-		serversFile: filepath.Join(dataDir, "servers.json"),
+		servers:           make(map[string]*ServerInstance),
+		portMap:           make(map[int]string),
+		nextPort:          8500, // Start from 8500 like Python version
+		logger:            NewProcessLogger(),
+		dataDir:           dataDir,
+		serversFile:       filepath.Join(dataDir, "servers.json"),
+		extensionProgress: make(map[string]*ExtensionInstallationProgress),
 	}
 
 	// Load existing servers from file
@@ -1089,6 +1117,62 @@ func (pm *ProcessManager) CreateServerMetadata(name string) (*ServerInstance, er
 }
 
 func (pm *ProcessManager) InstallExtensionsForServer(serverID string, extensions []string) error {
+	return pm.InstallExtensionsWithProgress(serverID, extensions, []string{}, nil)
+}
+
+// InstallSingleExtension installs a single extension for a server
+func (pm *ProcessManager) InstallSingleExtension(serverID string, extension string) error {
+	pm.mutex.RLock()
+	server, exists := pm.servers[serverID]
+	if !exists {
+		pm.mutex.RUnlock()
+		return fmt.Errorf("server not found: %s", serverID)
+	}
+	pm.mutex.RUnlock()
+
+	log.Printf("Installing single extension for server %s: %s", serverID, extension)
+
+	// Set up environment for extension installation
+	env := os.Environ()
+	userDataDir := filepath.Join(pm.dataDir, serverID)
+	absDataDir, err := filepath.Abs(userDataDir)
+	if err != nil {
+		log.Printf("Failed to get absolute data dir path: %v", err)
+		absDataDir = userDataDir
+	}
+
+	env = append(env, fmt.Sprintf("XDG_DATA_HOME=%s", absDataDir))
+
+	// Install the extension
+	success := pm.installExtension(env, extension, serverID, server.Name)
+	if !success {
+		return fmt.Errorf("failed to install extension: %s", extension)
+	}
+
+	// Update server extensions list
+	pm.mutex.Lock()
+	if server.Extensions == nil {
+		server.Extensions = []string{}
+	}
+	// Add extension if not already present
+	found := false
+	for _, ext := range server.Extensions {
+		if ext == extension {
+			found = true
+			break
+		}
+	}
+	if !found {
+		server.Extensions = append(server.Extensions, extension)
+		pm.saveServers()
+	}
+	pm.mutex.Unlock()
+
+	log.Printf("Successfully installed extension %s for server %s", extension, serverID)
+	return nil
+}
+
+func (pm *ProcessManager) InstallExtensionsWithProgress(serverID string, extensions []string, groupsWithUserSettings []string, onProgress func(step string, current int, total int)) error {
 	pm.mutex.RLock()
 	server, exists := pm.servers[serverID]
 	if !exists {
@@ -1115,34 +1199,56 @@ func (pm *ProcessManager) InstallExtensionsForServer(serverID string, extensions
 	}
 
 	env = append(env,
-		// fmt.Sprintf("VSCODE_PROXY_URI=./vscode/%d", server.Port),
 		fmt.Sprintf("XDG_DATA_HOME=%s", absDataDir),
 	)
 
-	// Install extensions
-	extensionSuccess := pm.installExtensions(env, extensions, serverID, server.Name)
+	// Install extensions one by one with progress reporting
+	successCount := 0
+	totalSteps := len(extensions) + len(groupsWithUserSettings) // Extensions + user settings steps
+	currentStep := 0
+
+	for i, extension := range extensions {
+		currentStep++
+		if onProgress != nil {
+			onProgress(fmt.Sprintf("Installing extension: %s", extension), currentStep, totalSteps)
+		}
+
+		log.Printf("Installing extension %d/%d: %s", i+1, len(extensions), extension)
+
+		if pm.installExtension(env, extension, serverID, server.Name) {
+			successCount++
+		} else {
+			log.Printf("Failed to install extension: %s", extension)
+		}
+	}
 
 	// Update server extensions list
 	pm.mutex.Lock()
-	if extensionSuccess {
+	if successCount > 0 {
 		server.Extensions = extensions
 		pm.saveServers()
 	}
 	pm.mutex.Unlock()
 
-	if extensionSuccess {
-		log.Printf("All extensions installed successfully for server %s", serverID)
-
-		// Apply user settings after extension installation
-		if err := pm.applyUserSettings(serverID, extensions); err != nil {
-			log.Printf("Failed to apply user settings for server %s: %v", serverID, err)
-			// Continue anyway, don't fail extension installation
+	// Apply user settings for each group separately with progress
+	for _, groupName := range groupsWithUserSettings {
+		currentStep++
+		if onProgress != nil {
+			onProgress(fmt.Sprintf("Applying user settings for %s...", groupName), currentStep, totalSteps)
 		}
 
+		if err := pm.applyGroupUserSettings(serverID, groupName); err != nil {
+			log.Printf("Failed to apply user settings for group %s: %v", groupName, err)
+			// Continue anyway, don't fail extension installation
+		}
+	}
+
+	if successCount == len(extensions) {
+		log.Printf("All extensions installed successfully for server %s", serverID)
 		return nil
 	} else {
-		log.Printf("Some extensions failed to install for server %s", serverID)
-		return fmt.Errorf("some extensions failed to install")
+		log.Printf("Some extensions failed to install for server %s: %d/%d succeeded", serverID, successCount, len(extensions))
+		return fmt.Errorf("some extensions failed to install: %d/%d succeeded", successCount, len(extensions))
 	}
 }
 
@@ -1258,4 +1364,231 @@ func (pm *ProcessManager) applyUserSettings(serverID string, installedExtensions
 
 	log.Printf("Successfully applied %d user settings to %s", len(userSettings), settingsFile)
 	return nil
+}
+
+// applyGroupUserSettings applies user settings for a specific extension group
+func (pm *ProcessManager) applyGroupUserSettings(serverID string, groupName string) error {
+	config := GetConfig()
+	if config == nil {
+		return fmt.Errorf("config not available")
+	}
+
+	group, exists := config.ExtensionGroups[groupName]
+	if !exists {
+		return fmt.Errorf("extension group %s not found", groupName)
+	}
+
+	if group.UserSettings == nil || len(group.UserSettings) == 0 {
+		log.Printf("No user settings to apply for group %s", groupName)
+		return nil
+	}
+
+	// Get server data directory
+	userDataDir := filepath.Join(pm.dataDir, serverID)
+	configDir := filepath.Join(userDataDir, "code-server")
+	userDir := filepath.Join(configDir, "User")
+	settingsFile := filepath.Join(userDir, "settings.json")
+
+	// Ensure User directory exists
+	if err := os.MkdirAll(userDir, 0755); err != nil {
+		return fmt.Errorf("failed to create User directory: %v", err)
+	}
+
+	// Read existing settings if file exists
+	existingSettings := make(map[string]interface{})
+	if data, err := os.ReadFile(settingsFile); err == nil {
+		if err := json.Unmarshal(data, &existingSettings); err != nil {
+			log.Printf("Warning: Could not parse existing settings.json for server %s: %v", serverID, err)
+		}
+	}
+
+	// Apply user settings from this group
+	settingsApplied := 0
+	for key, value := range group.UserSettings {
+		existingSettings[key] = value
+		log.Printf("Applied setting %s = %v for group %s on server %s", key, value, groupName, serverID)
+		settingsApplied++
+	}
+
+	// Write merged settings back to file
+	data, err := json.MarshalIndent(existingSettings, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal settings: %v", err)
+	}
+
+	if err := os.WriteFile(settingsFile, data, 0644); err != nil {
+		return fmt.Errorf("failed to write settings file: %v", err)
+	}
+
+	log.Printf("Successfully applied %d user settings for group %s to %s", settingsApplied, groupName, settingsFile)
+	return nil
+}
+
+// InitializeExtensionProgress creates initial progress tracking for extension installation
+func (pm *ProcessManager) InitializeExtensionProgress(serverID string, extensions []string) (*ExtensionInstallationProgress, error) {
+	pm.extensionProgressMutex.Lock()
+	defer pm.extensionProgressMutex.Unlock()
+
+	// Check if server exists
+	pm.mutex.RLock()
+	_, exists := pm.servers[serverID]
+	pm.mutex.RUnlock()
+	if !exists {
+		return nil, fmt.Errorf("server not found: %s", serverID)
+	}
+
+	extensionList := make([]ExtensionProgress, len(extensions))
+	for i, ext := range extensions {
+		extensionList[i] = ExtensionProgress{
+			Name:   ext,
+			Status: ExtensionPending,
+		}
+	}
+
+	progress := &ExtensionInstallationProgress{
+		ServerID:         serverID,
+		Total:            len(extensions),
+		Completed:        0,
+		Failed:           0,
+		CurrentExtension: "",
+		Extensions:       extensionList,
+		IsComplete:       false,
+	}
+
+	pm.extensionProgress[serverID] = progress
+	log.Printf("Initialized extension progress for server %s with %d extensions", serverID, len(extensions))
+	return progress, nil
+}
+
+// GetExtensionProgress returns the current installation progress for a server
+func (pm *ProcessManager) GetExtensionProgress(serverID string) (*ExtensionInstallationProgress, error) {
+	pm.extensionProgressMutex.RLock()
+	defer pm.extensionProgressMutex.RUnlock()
+
+	progress, exists := pm.extensionProgress[serverID]
+	if !exists {
+		return nil, fmt.Errorf("no extension installation progress found for server: %s", serverID)
+	}
+
+	return progress, nil
+}
+
+// installExtensionsProgressively installs extensions one by one with progress tracking
+func (pm *ProcessManager) installExtensionsProgressively(serverID string, extensions []string) {
+	pm.mutex.RLock()
+	server, exists := pm.servers[serverID]
+	if !exists {
+		pm.mutex.RUnlock()
+		return
+	}
+	pm.mutex.RUnlock()
+
+	if len(extensions) == 0 {
+		pm.markExtensionInstallationComplete(serverID)
+		return
+	}
+
+	log.Printf("Installing extensions progressively for server %s: %v", serverID, extensions)
+
+	// Set up environment for extension installation
+	env := os.Environ()
+
+	// Get absolute path for XDG_DATA_HOME
+	userDataDir := filepath.Join(pm.dataDir, serverID)
+	absDataDir, err := filepath.Abs(userDataDir)
+	if err != nil {
+		log.Printf("Failed to get absolute data dir path: %v", err)
+		absDataDir = userDataDir
+	}
+
+	env = append(env,
+		fmt.Sprintf("XDG_DATA_HOME=%s", absDataDir),
+	)
+
+	// Install extensions one by one
+	for i, extension := range extensions {
+		pm.updateExtensionStatus(serverID, extension, ExtensionInstalling)
+
+		log.Printf("Installing extension %d/%d: %s", i+1, len(extensions), extension)
+
+		success := pm.installExtension(env, extension, serverID, server.Name)
+
+		if success {
+			pm.updateExtensionStatus(serverID, extension, ExtensionCompleted)
+		} else {
+			pm.updateExtensionStatus(serverID, extension, ExtensionFailed)
+		}
+	}
+
+	// Update server extensions list with successfully installed extensions
+	pm.mutex.Lock()
+	if server, exists := pm.servers[serverID]; exists {
+		server.Extensions = extensions
+		pm.saveServers()
+	}
+	pm.mutex.Unlock()
+
+	// Apply user settings after extension installation
+	if err := pm.applyUserSettings(serverID, extensions); err != nil {
+		log.Printf("Failed to apply user settings for server %s: %v", serverID, err)
+	}
+
+	pm.markExtensionInstallationComplete(serverID)
+	log.Printf("Extension installation completed for server %s", serverID)
+}
+
+// updateExtensionStatus updates the status of a specific extension
+func (pm *ProcessManager) updateExtensionStatus(serverID string, extensionName string, status ExtensionInstallStatus) {
+	pm.extensionProgressMutex.Lock()
+	defer pm.extensionProgressMutex.Unlock()
+
+	progress, exists := pm.extensionProgress[serverID]
+	if !exists {
+		return
+	}
+
+	// Update the specific extension status
+	for i := range progress.Extensions {
+		if progress.Extensions[i].Name == extensionName {
+			oldStatus := progress.Extensions[i].Status
+			progress.Extensions[i].Status = status
+
+			// Update current extension
+			if status == ExtensionInstalling {
+				progress.CurrentExtension = extensionName
+			}
+
+			// Update counters
+			if oldStatus == ExtensionPending && status == ExtensionCompleted {
+				progress.Completed++
+			} else if oldStatus == ExtensionPending && status == ExtensionFailed {
+				progress.Failed++
+			} else if oldStatus == ExtensionInstalling && status == ExtensionCompleted {
+				progress.Completed++
+				progress.CurrentExtension = ""
+			} else if oldStatus == ExtensionInstalling && status == ExtensionFailed {
+				progress.Failed++
+				progress.CurrentExtension = ""
+			}
+
+			break
+		}
+	}
+}
+
+// markExtensionInstallationComplete marks the installation as complete
+func (pm *ProcessManager) markExtensionInstallationComplete(serverID string) {
+	pm.extensionProgressMutex.Lock()
+	defer pm.extensionProgressMutex.Unlock()
+
+	progress, exists := pm.extensionProgress[serverID]
+	if !exists {
+		return
+	}
+
+	progress.IsComplete = true
+	progress.CurrentExtension = ""
+
+	log.Printf("Extension installation marked as complete for server %s: %d completed, %d failed",
+		serverID, progress.Completed, progress.Failed)
 }

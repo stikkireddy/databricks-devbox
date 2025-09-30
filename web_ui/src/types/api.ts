@@ -74,9 +74,45 @@ export interface DevboxConfig {
   extension_groups: Record<string, ExtensionGroup>;
   server: ServerConfig;
   ui: UIConfig;
+  packaged_assets?: PackagedAssets;
 }
 
 export interface ConfigResponse {
   status: string;
   data: DevboxConfig;
+}
+
+// Template-related types
+export interface IconLink {
+  lucide_icon: string;
+  url: string;
+}
+
+export interface TemplateItem {
+  name: string;
+  description: string;
+  extensions_groups: string[];
+  thumbnail_url: string;
+  github_url: string;
+  icon_links: IconLink[];
+}
+
+export interface TemplateTab {
+  name: string;
+  items: TemplateItem[];
+}
+
+export interface PackagedAssets {
+  tabs: TemplateTab[];
+}
+
+export interface TemplatesResponse {
+  status: string;
+  data: PackagedAssets;
+}
+
+export interface CreateServerFromTemplateRequest {
+  name: string;
+  template_id: string;
+  tab_name: string;
 }

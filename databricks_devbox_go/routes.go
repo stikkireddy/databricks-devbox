@@ -18,6 +18,12 @@ type CreateServerRequest struct {
 	Extensions []string `json:"extensions"`
 }
 
+type CreateServerFromTemplateRequest struct {
+	Name       string `json:"name" binding:"required"`
+	TemplateID string `json:"template_id" binding:"required"`
+	TabName    string `json:"tab_name" binding:"required"`
+}
+
 func setupRoutes(r *gin.Engine, pm *ProcessManager, lm *LogManager) {
 	// Health check
 	r.GET("/health", func(c *gin.Context) {
@@ -30,14 +36,20 @@ func setupRoutes(r *gin.Engine, pm *ProcessManager, lm *LogManager) {
 	// Configuration endpoint
 	r.GET("/config", getConfig())
 
+	// Templates endpoint
+	r.GET("/templates", getTemplates())
+
 	// Server management endpoints
 	r.GET("/servers", listServers(pm))
 	r.POST("/servers", createServer(pm))
 	r.POST("/servers/create-with-workspace", createServerWithWorkspace(pm))
+	r.POST("/servers/create-from-template", createServerFromTemplate(pm))
 
 	// Multi-step server creation endpoints
 	r.POST("/servers/create-metadata", createServerMetadata(pm))
 	r.POST("/servers/:id/install-extensions", installServerExtensions(pm))
+	r.POST("/servers/:id/install-extension", installSingleExtension(pm))
+	r.POST("/servers/:id/apply-group-settings", applyGroupSettings(pm))
 	r.POST("/servers/:id/clone-workspace", cloneServerWorkspace(pm))
 
 	r.POST("/servers/:id/start", startServer(pm))
@@ -488,6 +500,54 @@ func installServerExtensions(pm *ProcessManager) gin.HandlerFunc {
 	}
 }
 
+func installSingleExtension(pm *ProcessManager) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+
+		var req struct {
+			Extension string `json:"extension"`
+		}
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		if err := pm.InstallSingleExtension(id, req.Extension); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "success",
+			"message": "Extension installed",
+		})
+	}
+}
+
+func applyGroupSettings(pm *ProcessManager) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+
+		var req struct {
+			GroupName string `json:"groupName"`
+		}
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		if err := pm.applyGroupUserSettings(id, req.GroupName); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "success",
+			"message": "Group settings applied",
+		})
+	}
+}
+
 func cloneServerWorkspace(pm *ProcessManager) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
@@ -536,5 +596,76 @@ func getConfig() gin.HandlerFunc {
 			"status": "success",
 			"data":   config,
 		})
+	}
+}
+
+func getTemplates() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		config := GetConfig()
+		if config.PackagedAssets == nil {
+			c.JSON(http.StatusOK, gin.H{
+				"status": "success",
+				"data":   gin.H{"tabs": []interface{}{}},
+			})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"status": "success",
+			"data":   config.PackagedAssets,
+		})
+	}
+}
+
+func createServerFromTemplate(pm *ProcessManager) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var req CreateServerFromTemplateRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		config := GetConfig()
+		if config.PackagedAssets == nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "No templates available"})
+			return
+		}
+
+		// Find the template by tab name and template ID
+		var template *TemplateItem
+		for _, tab := range config.PackagedAssets.Tabs {
+			if tab.Name == req.TabName {
+				for _, item := range tab.Items {
+					if item.Name == req.TemplateID {
+						template = &item
+						break
+					}
+				}
+				break
+			}
+		}
+
+		if template == nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Template not found"})
+			return
+		}
+
+		// Build extensions list from template's extension groups
+		var allExtensions []string
+		extensionGroups := config.ExtensionGroups
+		for _, groupKey := range template.ExtensionGroups {
+			if group, exists := extensionGroups[groupKey]; exists {
+				allExtensions = append(allExtensions, group.Extensions...)
+			}
+		}
+
+		// Create server with template's github URL and extensions
+		githubURL := template.GithubURL
+		server, err := pm.CreateServer(req.Name, "", allExtensions, "", githubURL)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusCreated, server)
 	}
 }

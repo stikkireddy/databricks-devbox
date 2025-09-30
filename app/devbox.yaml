@@ -63,3 +63,24 @@ ui:
     supported_archive_types:
       - ".zip"
       - ".tar.gz"
+
+
+packaged_assets:
+  tabs:
+  - name: "Workshops"
+    items:
+    - name: "Databricks Workshop"
+      description: "Databricks Workshop"
+      extensions_groups:
+        - "python"
+        - "databricks"
+      thumbnail_url: "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fqo23tbzej4ll5mdkrwnd.jpg"
+      github_url: "https://github.com/stikkireddy/chicago-vibe-coding.git"
+      icon_links:
+        - lucide_icon: "blog"
+          url: "https://www.databricks.com/blog/databricks-workshop"
+        - lucide_icon: "youtube"
+          url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+      
+
+
