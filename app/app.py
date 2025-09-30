@@ -388,9 +388,9 @@ def main():
 
     # Set the port environment variable for the Go binary
     if is_databricks_app_deployment is True:
-        from cc import setup_node_and_ccr_and_claude
+        from vibe_code import setup_node_and_vibe_coding_tools
         
-        setup_node_and_ccr_and_claude()
+        setup_node_and_vibe_coding_tools()
 
     env = os.environ.copy()
     env['DEVBOX_SERVER_PORT'] = port

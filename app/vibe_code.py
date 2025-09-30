@@ -190,7 +190,7 @@ def materialize_configs(databricks_token: str):
 def _run(cmd, env=None):
     return subprocess.run(cmd, check=True, text=True, env=env or os.environ)
 
-def setup_node_and_ccr_and_claude():
+def setup_node_and_vibe_coding_tools():
     from pathlib import Path
     print("Setting up npm global user dir")
     HOME = os.environ['HOME']
@@ -208,6 +208,12 @@ def setup_node_and_ccr_and_claude():
 
     # npm install -g @musistudio/claude-code-router
     _run(["npm", "install", "-g", "@musistudio/claude-code-router"], env=os.environ)
+
+    # npm install -g @openai/codex
+    _run(["npm", "install", "-g", "@openai/codex"], env=os.environ)
+
+    # npm install -g @google/gemini-cli
+    _run(["npm", "install", "-g", "@google/gemini-cli"], env=os.environ)
 
     # restart ccr proxy
     _run(["ccr", "restart"], env=os.environ)
