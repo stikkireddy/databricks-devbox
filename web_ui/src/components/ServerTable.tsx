@@ -216,6 +216,11 @@ const ServerTable: React.FC<{
 }) => {
   const { data: servers = [], isLoading, error } = useServers();
 
+  // Sort servers by port
+  const sortedServers = React.useMemo(() => {
+    return [...servers].sort((a, b) => a.port - b.port);
+  }, [servers]);
+
   // Get mutation hooks to check loading states
   const startServerMutation = useStartServer();
   const stopServerMutation = useStopServer();
@@ -239,7 +244,7 @@ const ServerTable: React.FC<{
     );
   }
 
-  if (servers.length === 0) {
+  if (sortedServers.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-48 text-center">
         <div className="text-sm text-muted-foreground mb-2">No servers found</div>
@@ -266,7 +271,7 @@ const ServerTable: React.FC<{
           </TableRow>
         </TableHeader>
         <TableBody>
-          {servers.map((server) => {
+          {sortedServers.map((server) => {
             // Check if this specific server has pending operations
             const isServerStarting = startServerMutation.isPending;
             const isServerStopping = stopServerMutation.isPending;

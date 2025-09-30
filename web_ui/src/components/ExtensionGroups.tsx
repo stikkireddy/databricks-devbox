@@ -69,7 +69,7 @@ export const ExtensionGroups: React.FC<ExtensionGroupsProps> = ({
               >
                 <div className="flex items-center space-x-2">
                   <span>{group.name}</span>
-                  {group.user_settings && Object.keys(group.user_settings).length > 0 && (
+                  {key !== 'python' && group.user_settings && Object.keys(group.user_settings).length > 0 && (
                     <Settings className="h-3 w-3 text-muted-foreground" />
                   )}
                 </div>
@@ -91,7 +91,7 @@ export const ExtensionGroups: React.FC<ExtensionGroupsProps> = ({
                     className="flex items-center space-x-1"
                   >
                     <span>{group?.name || groupKey}</span>
-                    {group?.user_settings && Object.keys(group.user_settings).length > 0 && (
+                    {groupKey !== 'python' && group?.user_settings && Object.keys(group.user_settings).length > 0 && (
                       <Settings className="h-3 w-3 text-muted-foreground" />
                     )}
                     <Button

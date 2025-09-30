@@ -14,6 +14,15 @@ def generate_spn_token(duration_seconds = 3600):
     token = w.tokens.create(comment=f"sdk-{time.time_ns()}", lifetime_seconds=token_expiry).token_value
     return token
 
+def setup_databricks_cfg():
+    cfg_content = f"""
+[DEFAULT]
+host = {os.environ['DATABRICKS_HOST']}
+client_id = {os.environ['DATABRICKS_CLIENT_ID']}
+client_secret = {os.environ['DATABRICKS_CLIENT_SECRET']}
+"""
+    with open(DEFAULT_ROOT_DIR_PATH / ".databrickscfg", "w") as f:
+        f.write(cfg_content)
 
 def make_config(databricks_token: str, root_dir: Path = DEFAULT_ROOT_DIR_PATH):
     transformers = DEFAULT_ROOT_DIR_PATH / ".claude-code-router/plugins/databricks-claude-transformers.js"
@@ -221,7 +230,8 @@ def setup_node_and_vibe_coding_tools():
     # echo 'alias cc="ccr restart && ccr code"' >> ~/.bashrc
     # Ensure alias is in ~/.bashrc
     bashrc = Path(HOME) / ".bashrc"
-    alias_line = 'alias cc="ccr code"'
+    ccr_code_alias = 'alias cc="ccr code"'
+    codex_alias = "alias codex='mkdir -p $CODEX_HOME && \codex'"
 
     if bashrc.exists():
         with open(bashrc, "r") as f:
@@ -229,9 +239,11 @@ def setup_node_and_vibe_coding_tools():
     else:
         lines = []
 
-    if not any(l.strip() == alias_line for l in lines):
+    if not any(l.strip() == ccr_code_alias for l in lines):
         with open(bashrc, "a") as f:
-            f.write(f"\n{alias_line}\n")
+            f.write("\n")
+            f.write(f"{ccr_code_alias}\n")
+            f.write(f"{codex_alias}\n")
         print(f"Added alias to {bashrc}")
     else:
         print("Alias already present in .bashrc")

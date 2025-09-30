@@ -1,0 +1,143 @@
+site_name: Databricks Devbox
+site_url: https://databricks-devbox.dev
+site_description: Databricks DevBox - Web-based development environments powered by code-server
+repo_url: https://github.com/stikkireddy/databricks-devbox
+repo_name: stikkireddy/databricks-devbox
+
+theme:
+  name: material
+  palette:
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: brown
+      accent: red
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: brown
+      accent: red
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+  features:
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - search.share
+    - toc.follow
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+
+  icon:
+    repo: fontawesome/brands/github
+  logo: logo.png
+  favicon: logo.png
+
+extra_css:
+  - stylesheets/extra.css
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/stikkireddy/databricks-devbox
+  version:
+    provider: mike
+
+plugins:
+  - search:
+      lang: en
+  - git-revision-date-localized:
+      enable_creation_date: true
+      type: timeago
+
+markdown_extensions:
+  # Python Markdown
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+      toc_depth: 3
+
+  # Python Markdown Extensions
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+nav:
+  - Home: index.md
+
+  - Installation:
+    - Overview: installation/index.md
+    - Deploy as Databricks App: installation/databricks-app.md
+    - Local Development: installation/local-setup.md
+
+  - Architecture:
+    - Overview: architecture/index.md
+    - Go Binary Components: architecture/go-binary.md
+    - Process Management: architecture/process-management.md
+    - Web UI: architecture/web-ui.md
+
+  - Configuration:
+    - Overview: configuration/index.md
+    - devbox.yaml Reference: configuration/devbox-yaml.md
+    - Extension Groups: configuration/extension-groups.md
+    - Packaged Assets & Templates: configuration/packaged-assets.md
+
+  - Authentication: authentication.md
+
+  - Vibe Coding Assistants:
+    - Overview: coding-assistants/index.md
+    - Claude Code: coding-assistants/claude-code.md
+    - Claude Code with Databricks Hosted Sonnet: coding-assistants/claude-code-router.md
+    - OpenAI Codex: coding-assistants/codex.md
+    - Google Gemini: coding-assistants/gemini.md
+    - Known Caveats: coding-assistants/caveats.md
+
+  - Code-Server:
+    - What is code-server?: code-server/index.md
+    - Differences from VS Code: code-server/vs-code-differences.md
+    - Extension Marketplace: code-server/extension-marketplace.md
+
+  - API Reference: api-reference.md

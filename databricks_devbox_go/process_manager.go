@@ -128,6 +128,52 @@ func (pm *ProcessManager) getNextAvailablePort() int {
 	}
 }
 
+// killProcessOnPort kills any process listening on the specified port
+// This is called before starting a server to ensure the port is free
+func (pm *ProcessManager) killProcessOnPort(port int) error {
+	// Use lsof to find the process using the port
+	cmd := exec.Command("lsof", "-ti", fmt.Sprintf(":%d", port))
+	output, err := cmd.Output()
+	if err != nil {
+		// No process found on port (which is fine)
+		return nil
+	}
+
+	// Parse PIDs from output (one per line)
+	pidStr := strings.TrimSpace(string(output))
+	if pidStr == "" {
+		return nil
+	}
+
+	// Split by newlines in case multiple processes are on the port
+	pids := strings.Split(pidStr, "\n")
+	for _, pidLine := range pids {
+		pidLine = strings.TrimSpace(pidLine)
+		if pidLine == "" {
+			continue
+		}
+
+		// Convert PID string to int
+		pid, err := fmt.Sscanf(pidLine, "%d", new(int))
+		if err != nil || pid == 0 {
+			continue
+		}
+
+		// Kill the process
+		killCmd := exec.Command("kill", "-9", pidLine)
+		if err := killCmd.Run(); err != nil {
+			log.Printf("Failed to kill process %s on port %d: %v", pidLine, port, err)
+		} else {
+			log.Printf("Killed existing process %s on port %d", pidLine, port)
+			if pm.logManager != nil {
+				pm.logManager.AddSystemLog("INFO", fmt.Sprintf("Killed existing process %s on port %d", pidLine, port))
+			}
+		}
+	}
+
+	return nil
+}
+
 func (pm *ProcessManager) CreateServer(name, workspacePath string, extensions []string, zipFilePath, githubURL string) (*ServerInstance, error) {
 	// Generate unique ID and port (don't lock here since getNextAvailablePort locks internally)
 	id := uuid.New().String()
@@ -249,6 +295,12 @@ func (pm *ProcessManager) StartServer(id string) error {
 		return fmt.Errorf("server is already running")
 	}
 
+	// Kill any existing process on the port before starting
+	if err := pm.killProcessOnPort(server.Port); err != nil {
+		log.Printf("Warning: Failed to kill existing process on port %d: %v", server.Port, err)
+		// Continue anyway - the port might just be free
+	}
+
 	// Create user data directory and config directory (like Python version)
 	userDataDir := filepath.Join(pm.dataDir, id)
 	configDir := filepath.Join(userDataDir, "code-server") // Like Python: data/{server_id}/code-server
@@ -290,7 +342,8 @@ func (pm *ProcessManager) StartServer(id string) error {
 
 	env = append(env,
 		// fmt.Sprintf("VSCODE_PROXY_URI=./vscode/%d", server.Port),
-		fmt.Sprintf("XDG_DATA_HOME=%s", absDataDir), // Match Python: absolute path to data/{server_id}
+		fmt.Sprintf("XDG_DATA_HOME=%s", absDataDir),                                 // Match Python: absolute path to data/{server_id}
+		fmt.Sprintf("CODEX_HOME=%s", filepath.Join(server.WorkspacePath, ".codex")), // Absolute path to workspace/.codex directory
 		"NODE_OPTIONS=--max-old-space-size=2048",
 		"VSCODE_LOGS=info",
 		"CODE_SERVER_LOG=info",

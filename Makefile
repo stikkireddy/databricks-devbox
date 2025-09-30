@@ -1,4 +1,4 @@
-.PHONY: install run dev backend frontend clean build build-go build-all build-release help
+.PHONY: install run dev backend frontend clean build build-go build-all build-release docs docs-serve docs-build docs-deploy help
 
 # Install all dependencies (Python + Node.js)
 install:
@@ -58,7 +58,7 @@ build-release: build
 
 # Run only the backend (port 8005) - Go version with built frontend
 backend: build-release
-	python app/app.py
+	uv run app/app.py
 
 # Run only the React frontend (port 3000)
 frontend: install
@@ -72,6 +72,23 @@ build: install
 prod: build-release
 	python app/app.py
 
+# Documentation commands
+docs-serve:
+	@echo "Starting documentation server..."
+	@echo "Documentation will be available at http://127.0.0.1:8000"
+	uv run python -m mkdocs serve
+
+docs-build:
+	@echo "Building documentation..."
+	uv run python -m mkdocs build
+	@echo "Documentation built to ./site/"
+
+docs-deploy:
+	@echo "Deploying documentation to GitHub Pages..."
+	uv run python -m mkdocs gh-deploy
+
+docs: docs-serve
+
 # Clean up build artifacts and cache
 clean:
 	rm -rf __pycache__/
@@ -83,6 +100,7 @@ clean:
 	rm -rf web_ui/node_modules/
 	rm -rf web_ui/dist/
 	rm -rf build/
+	rm -rf site/
 	rm -f databricks_devbox_go/databricks-devbox-*
 	rm -f databricks_devbox_go/logo.png
 	rm -rf databricks_devbox_go/web_ui_dist
@@ -99,5 +117,9 @@ help:
 	@echo "  frontend     - Run only React frontend dev server (port 3000)"
 	@echo "  build        - Build React app for production"
 	@echo "  prod         - Run production server (backend serves built frontend)"
+	@echo "  docs         - Serve documentation with live reload (http://127.0.0.1:8000)"
+	@echo "  docs-serve   - Same as 'docs' command"
+	@echo "  docs-build   - Build static documentation site to ./site/"
+	@echo "  docs-deploy  - Deploy documentation to GitHub Pages"
 	@echo "  clean        - Clean up build artifacts and dependencies"
 	@echo "  help         - Show this help message"

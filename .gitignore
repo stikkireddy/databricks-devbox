@@ -24,3 +24,4 @@ databricks-devbox-*
 databricks-devbox
 .codex/
 databricks_devbox_go/web_ui_dist/
+site/
