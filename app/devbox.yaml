@@ -27,6 +27,12 @@ extension_groups:
     extensions:
       - "databricks.databricks"
       - "databricks.sqltools-databricks-driver"
+  
+  claude-code:
+    name: "Claude Code"
+    description: "Claude Code tools"
+    extensions:
+      - "anthropic.claude-code"
 
   # api-explorer:
   #   name: "API Explorer"

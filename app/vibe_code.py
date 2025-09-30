@@ -14,10 +14,15 @@ def generate_spn_token(duration_seconds = 3600):
     token = w.tokens.create(comment=f"sdk-{time.time_ns()}", lifetime_seconds=token_expiry).token_value
     return token
 
+def ensure_https_url(url: str):
+    if not url.startswith("https://"):
+        return f"https://{url}"
+    return url
+
 def setup_databricks_cfg():
     cfg_content = f"""
 [DEFAULT]
-host = {os.environ['DATABRICKS_HOST']}
+host = {ensure_https_url(os.environ['DATABRICKS_HOST'])}
 client_id = {os.environ['DATABRICKS_CLIENT_ID']}
 client_secret = {os.environ['DATABRICKS_CLIENT_SECRET']}
 """

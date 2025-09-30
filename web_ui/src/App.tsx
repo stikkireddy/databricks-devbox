@@ -216,7 +216,6 @@ function ServerManagementApp() {
           <div className="flex items-center space-x-3">
             <Button
               variant="outline"
-              size="sm"
               onClick={handleRefresh}
               disabled={isManualRefreshing}
             >
