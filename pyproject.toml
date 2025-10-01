@@ -24,4 +24,5 @@ packages = ["databricks_devbox"]
 [tool.uv.workspace]
 members = [
     "workspace/d3e59fbd-bc8d-4ddd-82ab-cc50ce7cc2fc",
+    "workspace/baf6772e-05aa-491e-b6d2-781d25cd00b9",
 ]

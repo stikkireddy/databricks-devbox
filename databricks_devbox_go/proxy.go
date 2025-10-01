@@ -2,12 +2,14 @@ package main
 
 import (
 	"fmt"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -54,15 +56,16 @@ func proxyToCodeServer(pm *ProcessManager) gin.HandlerFunc {
 			return
 		}
 
-		// Find the server with this port (like Python version)
+		// Find the server with this port (for logging purposes)
 		server, err := pm.GetServerByPort(port)
-		if err != nil || server.Status != StatusRunning {
-			fmt.Printf("DEBUG: Server not found or not running - err: %v, status: %v\n", err, server)
-			c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("No running server found on port %d", port)})
-			return
+		if err != nil {
+			fmt.Printf("DEBUG: Server not found on port %d - err: %v\n", port, err)
+		} else {
+			fmt.Printf("DEBUG: Attempting to proxy to server - %s on port %d, status: %s\n", server.Name, server.Port, server.Status)
 		}
 
-		fmt.Printf("DEBUG: Server found - %s on port %d, status: %s\n", server.Name, server.Port, server.Status)
+		// Note: We no longer check server status here - let the proxy attempt to connect
+		// and provide a clear error if the backend isn't responding
 
 		// Check if this is a Streamlit proxy request - route directly to Streamlit
 		if strings.Contains(path, "/proxy/") && strings.Contains(path, "_stcore") {
@@ -174,8 +177,13 @@ func handleWebSocketProxy(c *gin.Context, targetPort int) {
 	}
 	defer clientConn.Close()
 
-	// Connect to target WebSocket server
-	dialer := websocket.DefaultDialer
+	// Connect to target WebSocket server with timeout
+	dialer := &websocket.Dialer{
+		HandshakeTimeout: 10 * time.Second, // Timeout for WebSocket handshake
+		NetDialContext: (&net.Dialer{
+			Timeout: 5 * time.Second, // Connection timeout
+		}).DialContext,
+	}
 	targetConn, resp, err := dialer.Dial(targetURL, headers)
 	if err != nil {
 		fmt.Printf("DEBUG WS PROXY: Failed to connect to target WebSocket: %v (response: %+v)\n", err, resp)
@@ -254,6 +262,28 @@ func handleHTTPProxy(c *gin.Context, targetPort int) {
 
 	// Create reverse proxy
 	proxy := httputil.NewSingleHostReverseProxy(target)
+
+	// Configure transport with aggressive timeouts for fast failure detection
+	proxy.Transport = &http.Transport{
+		DialContext: (&net.Dialer{
+			Timeout:   5 * time.Second,  // Connection timeout
+			KeepAlive: 30 * time.Second, // Keep-alive period
+		}).DialContext,
+		TLSHandshakeTimeout:   5 * time.Second,
+		ResponseHeaderTimeout: 10 * time.Second, // Time to receive response headers
+		ExpectContinueTimeout: 1 * time.Second,
+		IdleConnTimeout:       90 * time.Second,
+		MaxIdleConns:          100,
+		MaxIdleConnsPerHost:   10,
+	}
+
+	// Add error handler for connection failures
+	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
+		fmt.Printf("DEBUG HTTP PROXY: Connection failed to port %d: %v\n", targetPort, err)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadGateway)
+		w.Write([]byte(fmt.Sprintf(`{"error": "Failed to connect to code-server on port %d. The server may not be fully started yet. Please wait a moment and try again.", "details": "%s"}`, targetPort, err.Error())))
+	}
 
 	// Customize the director to modify the request path
 	originalDirector := proxy.Director
@@ -338,8 +368,13 @@ func handleStreamlitWebSocketProxy(c *gin.Context, targetPort int, targetPath st
 	}
 	defer clientConn.Close()
 
-	// Connect to Streamlit WebSocket server
-	dialer := websocket.DefaultDialer
+	// Connect to Streamlit WebSocket server with timeout
+	dialer := &websocket.Dialer{
+		HandshakeTimeout: 10 * time.Second, // Timeout for WebSocket handshake
+		NetDialContext: (&net.Dialer{
+			Timeout: 5 * time.Second, // Connection timeout
+		}).DialContext,
+	}
 	targetConn, resp, err := dialer.Dial(targetURL, headers)
 	if err != nil {
 		fmt.Printf("DEBUG STREAMLIT WS: Failed to connect to Streamlit WebSocket: %v (response: %+v)\n", err, resp)
@@ -415,6 +450,28 @@ func handleStreamlitHTTPProxy(c *gin.Context, targetPort int, targetPath string)
 
 	// Create reverse proxy
 	proxy := httputil.NewSingleHostReverseProxy(target)
+
+	// Configure transport with aggressive timeouts for fast failure detection
+	proxy.Transport = &http.Transport{
+		DialContext: (&net.Dialer{
+			Timeout:   5 * time.Second,  // Connection timeout
+			KeepAlive: 30 * time.Second, // Keep-alive period
+		}).DialContext,
+		TLSHandshakeTimeout:   5 * time.Second,
+		ResponseHeaderTimeout: 10 * time.Second, // Time to receive response headers
+		ExpectContinueTimeout: 1 * time.Second,
+		IdleConnTimeout:       90 * time.Second,
+		MaxIdleConns:          100,
+		MaxIdleConnsPerHost:   10,
+	}
+
+	// Add error handler for connection failures
+	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
+		fmt.Printf("DEBUG STREAMLIT HTTP: Connection failed to port %d: %v\n", targetPort, err)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadGateway)
+		w.Write([]byte(fmt.Sprintf(`{"error": "Failed to connect to Streamlit on port %d. The server may not be fully started yet. Please wait a moment and try again.", "details": "%s"}`, targetPort, err.Error())))
+	}
 
 	// Customize the director to set headers and path
 	originalDirector := proxy.Director

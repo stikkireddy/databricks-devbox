@@ -388,7 +388,7 @@ func (pm *ProcessManager) StartServer(id string) error {
 	server.Status = StatusRunning
 	server.Command = append([]string{"code-server"}, args...)
 
-	// Save updated state to file (critical!)
+	// IMPORTANT: Save to file BEFORE unlocking to prevent race with refreshStateFromFile
 	pm.saveServers()
 
 	// Start output capture with LogManager integration for real-time WebSocket streaming
@@ -906,20 +906,29 @@ func (pm *ProcessManager) refreshStateFromFile() {
 		return
 	}
 
-	// Update in-memory state with fresh data from file, but preserve current metrics
+	// Update in-memory state with fresh data from file, but preserve current running state
 	oldServers := pm.servers
 	pm.servers = servers
 	pm.portMap = make(map[int]string)
 
-	// Rebuild port map and preserve current metrics for running servers
+	// Rebuild port map and preserve current state for running servers
 	for id, server := range servers {
 		pm.portMap[server.Port] = id
 		if server.Port >= pm.nextPort {
 			pm.nextPort = server.Port + 1
 		}
 
-		// Preserve current metrics if server was previously running
+		// If server was running in memory but file shows stopped, prefer memory state
+		// This handles the case where StartServer just updated the state
 		if oldServer, exists := oldServers[id]; exists {
+			// Preserve running state if it was just started in memory
+			if oldServer.Status == StatusRunning && oldServer.PID != nil {
+				server.Status = oldServer.Status
+				server.PID = oldServer.PID
+				server.StartTime = oldServer.StartTime
+				server.Command = oldServer.Command
+			}
+			// Preserve current metrics if server is running
 			if server.Status == StatusRunning && server.PID != nil {
 				server.Uptime = oldServer.Uptime
 				server.CPUPercent = oldServer.CPUPercent

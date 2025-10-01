@@ -20,3 +20,6 @@ def get_latest_tag(repo_url: str = "https://github.com/stikkireddy/databricks-de
         resp.raise_for_status()
         tags = resp.json()
         return tags[0]["name"] if tags else None
+
+if __name__ == "__main__":
+    print(get_latest_tag())
